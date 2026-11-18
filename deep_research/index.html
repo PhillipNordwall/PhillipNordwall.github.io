@@ -619,7 +619,11 @@ tests/smoke.sh research,review</pre></li>
 bin/dr import &lt;run-id&gt; notes.md --no-review
 <span class="c"># or at intake:</span>
 bin/dr new "question" --import offline-report.md</pre></li>
-    <li><h3>Run it</h3>
+    <li><h3>Choose a queued question</h3>
+      Repeat intake for each question you want to save. This command lists them oldest first. Importing background research leaves a question queued.
+      <pre>bin/dr queue</pre></li>
+    <li><h3>Start the question you picked</h3>
+      Use any ID from the queue. Once a phase dispatches agent work, find the question with <code>bin/dr list</code> and resume it with the same ID.
       A full run is 3N + N² sessions (18 with three agents), plus N reviews for each imported report, and can take hours. Run it detached.
       <pre>nohup bin/dr run &lt;run-id&gt; &gt; run.log 2&gt;&amp;1 &amp;
 bin/dr status &lt;run-id&gt; --blind</pre></li>
@@ -751,6 +755,7 @@ extra_args = ["-s", "workspace-write", ...]</pre>
 <!-- ============================================================ files -->
 <section class="view" id="v-files">
   <h1>Files</h1>
+  <p>Intake creates a dedicated <code>runs/&lt;run-id&gt;/</code> directory for each question. Imports and phase outputs accumulate there as work progresses. Open its <code>INDEX.md</code> to browse the available artifacts.</p>
   <pre>bin/dr                     entry point (python3 -m harness)
 config.toml                agents, timeouts, parallelism
 index.html                 this page
@@ -855,6 +860,7 @@ const CMDS = [
   ["dr run RUN", "Run or resume phases in order, committing after each session", "--phase research,review · --agents a,b · --allow-partial · --retry-failed"],
   ["dr status RUN", "Show task progress for each phase", "--blind (hide agent names)"],
   ["dr reveal RUN", "Show the mapping from artifact to framework, version, model and effort", "--json · --out FILE"],
+  ["dr queue", "List questions waiting for their first agent session by ID, intake date and question, oldest first", ""],
   ["dr list", "List runs, with completed counts for each phase", ""],
   ["tests/offline.sh", "Run the full pipeline with 3 mock agents and 2 imported reports: 23 artifacts, redaction, scrub and leak checks, no tokens", ""],
   ["tests/smoke.sh [phases]", "Run the real CLIs on cheap models in scratch folders, with no commits and a leak scan at the end", "SMOKE_MODEL_<NAME>=model[:effort]"],

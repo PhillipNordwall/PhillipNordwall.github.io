@@ -1,4 +1,4 @@
-const cacheName = 'shared-deep-research-v1';
+const cacheName = 'shared-deep-research-v2';
 const home = new URL('./', self.registration.scope);
 const index = new URL('index.html', home);
 
