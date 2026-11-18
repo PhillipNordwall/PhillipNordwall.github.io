@@ -1,4 +1,4 @@
-const cacheName = 'phillip-nordwall-v1';
+const cacheName = 'phillip-nordwall-v2';
 const home = new URL('./', self.registration.scope);
 const index = new URL('index.html', home);
 

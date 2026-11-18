@@ -6,10 +6,60 @@
     <title>Phillip Nordwall</title>
     <link rel="manifest" href="./manifest.webmanifest">
     <link rel="apple-touch-icon" href="./icon-180.png">
+    <style>
+      body {
+        margin: 0;
+        background: #192b45;
+      }
+
+      #playfield {
+        position: fixed;
+        inset: 0;
+        overflow: hidden;
+      }
+
+      #ball {
+        width: min(48px, 30vmin);
+        aspect-ratio: 1;
+        border-radius: 50%;
+        background: #ffd166;
+      }
+    </style>
   </head>
   <body>
-    <h1>Phillip Nordwall</h1>
+    <main id="playfield" aria-label="Bouncing ball animation">
+      <div id="ball"></div>
+    </main>
     <script>
+      const playfield = document.querySelector('#playfield');
+      const ball = document.querySelector('#ball');
+      const startedAt = performance.now();
+      let maxX;
+      let maxY;
+
+      function measure() {
+        maxX = Math.max(0, playfield.clientWidth - ball.offsetWidth);
+        maxY = Math.max(0, playfield.clientHeight - ball.offsetHeight);
+      }
+
+      function bounce(distance, limit) {
+        if (limit === 0) return 0;
+        const cycle = distance % (2 * limit);
+        return Math.min(cycle, 2 * limit - cycle);
+      }
+
+      function animate(now) {
+        const seconds = (now - startedAt) / 1000;
+        const x = bounce(maxX / 2 + seconds * 180, maxX);
+        const y = bounce(maxY / 2 + seconds * 135, maxY);
+        ball.style.transform = `translate(${x}px, ${y}px)`;
+        requestAnimationFrame(animate);
+      }
+
+      measure();
+      window.addEventListener('resize', measure);
+      requestAnimationFrame(animate);
+
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('./sw.js').catch(console.error);
       }
