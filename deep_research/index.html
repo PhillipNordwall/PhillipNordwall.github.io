@@ -1,0 +1,1127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shared Deep Research</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icon-180.png">
+<meta name="theme-color" content="#f7f7f5">
+<meta name="description" content="How to use the multi-framework blind deep research harness, with an interactive view of the process flow.">
+<style>
+:root {
+  --bg: #f7f7f5; --surface: #ffffff; --surface-2: #f0efeb; --border: #dddbd4;
+  --text: #1d1d1b; --muted: #6b6a64; --accent: #3a5bd9; --accent-soft: #e6ebfb;
+  --edge: #b9b7ae; --edge-hi: #3a5bd9; --anon: #8a8880; --ok: #2f8a4c; --warn: #b26a00;
+  --a1: #d9663a; --a2: #2f8a8a; --a3: #7656c9; --a4: #b8467a; --a5: #5f8a2f; --a6: #3a7bd9;
+  --code-bg: #f0efeb; --shadow: 0 1px 2px rgba(0,0,0,.05), 0 2px 8px rgba(0,0,0,.04);
+  --radius: 10px; --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #141413; --surface: #1d1d1b; --surface-2: #262623; --border: #36352f;
+    --text: #ecebe6; --muted: #a09e95; --accent: #8aa2ff; --accent-soft: #232a45;
+    --edge: #4a4943; --edge-hi: #8aa2ff; --anon: #8f8d84; --ok: #5cc27d; --warn: #e3a14a;
+    --a1: #f08a5d; --a2: #4fc2c2; --a3: #a68af0; --a4: #e57aaa; --a5: #93c25a; --a6: #6aa5ff;
+    --code-bg: #262623; --shadow: none;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #141413; --surface: #1d1d1b; --surface-2: #262623; --border: #36352f;
+  --text: #ecebe6; --muted: #a09e95; --accent: #8aa2ff; --accent-soft: #232a45;
+  --edge: #4a4943; --edge-hi: #8aa2ff; --anon: #8f8d84; --ok: #5cc27d; --warn: #e3a14a;
+  --a1: #f08a5d; --a2: #4fc2c2; --a3: #a68af0; --a4: #e57aaa; --a5: #93c25a; --a6: #6aa5ff;
+  --code-bg: #262623; --shadow: none;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--text); font: 15px/1.6 var(--sans); }
+a { color: var(--accent); }
+code, pre { font-family: var(--mono); font-size: 13px; }
+:not(pre) > code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; }
+.wrap { max-width: 1100px; margin: 0 auto; padding: 0 16px; }
+header.top { border-bottom: 1px solid var(--border); background: var(--surface); position: sticky; top: 0; z-index: 5; }
+.top .row { display: flex; align-items: center; gap: 16px; min-height: 56px; flex-wrap: wrap; }
+.brand { font-weight: 650; letter-spacing: -.01em; display: flex; gap: 10px; align-items: center; }
+.brand svg { flex: none; }
+nav.tabs { display: flex; gap: 2px; overflow-x: auto; flex: 1; scrollbar-width: none; }
+nav.tabs a { text-decoration: none; color: var(--muted); padding: 8px 10px; border-radius: 6px; white-space: nowrap; font-size: 14px; }
+nav.tabs a:hover { color: var(--text); background: var(--surface-2); }
+nav.tabs a[aria-current="page"] { color: var(--text); background: var(--accent-soft); }
+.theme-btn { background: none; border: 1px solid var(--border); color: var(--muted); border-radius: 6px; padding: 4px 8px; cursor: pointer; font: inherit; font-size: 13px; }
+main { padding: 28px 0 64px; }
+section.view { display: none; }
+section.view.active { display: block; }
+h1 { font-size: 28px; line-height: 1.2; letter-spacing: -.02em; margin: 0 0 8px; }
+h2 { font-size: 20px; margin: 32px 0 10px; letter-spacing: -.01em; }
+h3 { font-size: 16px; margin: 20px 0 6px; }
+p.lead { color: var(--muted); font-size: 17px; max-width: 70ch; margin-top: 0; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; box-shadow: var(--shadow); }
+.grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+.pill { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 99px; background: var(--surface-2); color: var(--muted); border: 1px solid var(--border); }
+.num { font-family: var(--mono); color: var(--accent); font-weight: 600; }
+pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; overflow-x: auto; margin: 8px 0 14px; position: relative; line-height: 1.5; }
+pre .copy { position: absolute; top: 6px; right: 6px; font: 12px var(--sans); background: var(--surface); color: var(--muted); border: 1px solid var(--border); border-radius: 5px; padding: 2px 8px; cursor: pointer; opacity: .85; }
+pre .copy:hover { opacity: 1; color: var(--text); }
+pre .c { color: var(--muted); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { color: var(--muted); font-weight: 600; font-size: 13px; }
+.table-scroll { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+.table-scroll table th:first-child, .table-scroll table td:first-child { padding-left: 14px; }
+ol.steps { counter-reset: s; list-style: none; padding: 0; margin: 0; }
+ol.steps > li { counter-increment: s; position: relative; padding: 0 0 18px 44px; }
+ol.steps > li::before { content: counter(s); position: absolute; left: 0; top: 0; width: 28px; height: 28px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); font-weight: 650; display: grid; place-items: center; font-size: 14px; }
+ol.steps > li::after { content: ""; position: absolute; left: 13.5px; top: 32px; bottom: 4px; width: 1px; background: var(--border); }
+ol.steps > li:last-child::after { display: none; }
+.callout { border-left: 3px solid var(--warn); background: var(--surface); padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 14px 0; }
+.callout.info { border-left-color: var(--accent); }
+
+/* ---- flow ---- */
+.controls { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; margin: 12px 0; }
+.agents { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.chip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border); background: var(--surface); border-radius: 99px; padding: 3px 10px 3px 8px; font-size: 13px; cursor: pointer; user-select: none; }
+.chip .dot { width: 9px; height: 9px; border-radius: 50%; }
+.chip.off { opacity: .45; }
+.chip .x { color: var(--muted); margin-left: 2px; }
+.add-agent { display: inline-flex; gap: 4px; }
+.add-agent input { width: 110px; font: inherit; font-size: 13px; padding: 3px 8px; border: 1px solid var(--border); border-radius: 99px; background: var(--surface); color: var(--text); }
+button.btn { font: inherit; font-size: 13px; border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: 7px; padding: 5px 12px; cursor: pointer; }
+button.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+button.btn:disabled { opacity: .5; cursor: default; }
+.toggle { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; user-select: none; }
+.toggle input { accent-color: var(--accent); }
+.counter { font-size: 13px; color: var(--muted); }
+.counter b { color: var(--text); font-family: var(--mono); }
+.flow-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow-x: auto; box-shadow: var(--shadow); }
+#flow { display: block; min-width: 760px; width: 100%; height: auto; }
+#flow .col-title { font: 600 13px var(--sans); fill: var(--text); }
+#flow .col-sub { font: 11px var(--sans); fill: var(--muted); }
+#flow .col-bg { fill: var(--surface-2); opacity: .55; transition: opacity .3s, fill .3s; }
+#flow .col-bg.hot { fill: var(--accent-soft); opacity: 1; }
+#flow .edge { fill: none; stroke: var(--edge); stroke-width: 1.1; opacity: .55; transition: opacity .2s, stroke .2s; }
+#flow .edge.faint { stroke-dasharray: 2 3; opacity: .3; }
+#flow .edge.hi { stroke: var(--edge-hi); opacity: 1; stroke-width: 1.8; }
+#flow .edge.dim { opacity: .08; }
+#flow .edge.flowing { stroke: var(--edge-hi); opacity: .9; stroke-dasharray: 5 6; animation: dash 1s linear infinite; }
+@keyframes dash { to { stroke-dashoffset: -22; } }
+#flow .node { cursor: pointer; }
+#flow .node rect { stroke-width: 1.5; transition: opacity .2s; }
+#flow .node text { font: 11.5px var(--mono); pointer-events: none; }
+#flow .node.dim rect, #flow .node.dim text { opacity: .25; }
+#flow .node.sel rect { stroke-width: 3; }
+#flow .node.pending rect { opacity: .25; }
+#flow .node.pending text { opacity: .3; }
+@media (prefers-reduced-motion: reduce) { #flow .edge.flowing { animation: none; } }
+.detail { margin-top: 14px; min-height: 120px; }
+.detail h3 { margin-top: 0; }
+.detail dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; margin: 8px 0 0; font-size: 14px; }
+.detail dt { color: var(--muted); }
+.detail dd { margin: 0; }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12.5px; color: var(--muted); margin-top: 10px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { display: inline-block; width: 22px; height: 0; border-top: 1.6px solid var(--edge); }
+.legend i.f { border-top-style: dashed; }
+.legend i.imp { width: 16px; height: 10px; border: 1.5px dashed var(--anon); border-radius: 3px; }
+.stepper { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; }
+.stepper button { min-width: 28px; padding: 3px 8px; }
+.stepper b { font-family: var(--mono); min-width: 1ch; text-align: center; }
+.phase-cards { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-top: 18px; }
+.phase-cards .card { cursor: pointer; transition: border-color .2s; }
+.phase-cards .card:hover, .phase-cards .card.sel { border-color: var(--accent); }
+.phase-cards .k { font: 12px var(--mono); color: var(--muted); }
+.phase-cards .n { float: right; font: 600 13px var(--mono); color: var(--accent); }
+
+/* ---- isolation diagram ---- */
+#iso { width: 100%; height: auto; display: block; min-width: 720px; }
+#iso text { font: 12.5px var(--sans); fill: var(--text); }
+#iso .m { fill: var(--muted); font-size: 11.5px; }
+#iso .mono { font-family: var(--mono); font-size: 11.5px; }
+#iso .box { fill: var(--surface); stroke: var(--border); stroke-width: 1.4; }
+#iso .zone-repo { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.2; stroke-dasharray: 4 3; }
+#iso .zone-ws { fill: var(--surface-2); stroke: var(--edge); stroke-width: 1.2; stroke-dasharray: 4 3; }
+#iso .arr { stroke: var(--edge-hi); stroke-width: 1.6; fill: none; }
+#iso .block { stroke: var(--warn); stroke-width: 2; fill: none; }
+footer { color: var(--muted); font-size: 13px; border-top: 1px solid var(--border); padding: 18px 0 30px; }
+@media (max-width: 640px) {
+  h1 { font-size: 23px; }
+  .brand .t { display: none; }
+}
+
+/* Field-guide chapters */
+.eyebrow { display:block; color:var(--accent); text-transform:uppercase; letter-spacing:.14em; font:600 11px var(--mono); margin:8px 0 20px; }
+.hero-title { font-size:clamp(36px,6.5vw,72px); letter-spacing:-.055em; line-height:1.04; margin-bottom:24px; }
+.hero-title span { color:var(--accent); }
+.hero-actions { display:flex; flex-wrap:wrap; gap:10px; margin:24px 0 32px; }
+a.btn { display:inline-block; text-decoration:none; padding:10px 16px; border:1px solid var(--border); border-radius:8px; background:var(--surface); color:var(--text); font-weight:600; }
+a.btn.primary { background:var(--accent); color:var(--bg); border-color:var(--accent); }
+.stat-strip { display:grid; grid-template-columns:repeat(4,1fr); border-block:1px solid var(--border); padding:22px 0; gap:16px; }
+.stat-strip b { display:block; font-size:30px; line-height:1.2; letter-spacing:-.04em; }
+.stat-strip span { color:var(--muted); font-size:12px; }
+.chapter-nav { display:flex; flex-wrap:wrap; gap:8px; margin:24px 0; }
+.chapter-nav button { font:inherit; padding:10px 16px; border:1px solid var(--border); border-radius:99px; background:var(--surface); color:var(--text); cursor:pointer; }
+.chapter-nav button[aria-pressed="true"] { background:var(--accent); color:var(--bg); border-color:var(--accent); }
+.phase-panel { border-top:3px solid var(--accent); padding:24px; }
+.phase-panel h2 { margin-top:8px; font-size:28px; }
+.phase-panel .grid { margin-top:24px; }
+.phase-panel h3 { color:var(--accent); }
+details.rubric { border:1px solid var(--border); border-radius:12px; background:var(--surface); margin:12px 0; overflow:hidden; }
+details.rubric summary { padding:18px 22px; cursor:pointer; font-weight:650; }
+details.rubric[open] summary { border-bottom:1px solid var(--border); }
+.rubric-body { padding:4px 22px 20px; }
+.rubric-body pre { white-space:pre-wrap; overflow-wrap:anywhere; max-height:540px; overflow:auto; }
+:focus-visible { outline:3px solid var(--accent); outline-offset:4px; }
+.skip-link { position:absolute; top:-80px; left:16px; z-index:20; background:var(--surface); padding:12px; }
+.skip-link:focus { top:8px; }
+[hidden] { display:none !important; }
+@media(max-width:600px) { .stat-strip { grid-template-columns:repeat(2,1fr); } .phase-panel { padding:18px; } }
+@media(prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto !important; animation:none !important; transition:none !important; } }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">Skip to content</a>
+<noscript><p>This interactive guide needs JavaScript. Read <a href="https://github.com/PhillipNordwall/shared_deep_research/blob/main/README.md">README.md</a> for the complete text guide.</p></noscript>
+<header class="top">
+  <div class="wrap row">
+    <div class="brand">
+      <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="2.6" fill="var(--a1)"/><circle cx="12" cy="5" r="2.6" fill="var(--a2)"/><circle cx="12" cy="19" r="2.6" fill="var(--a3)"/><circle cx="19" cy="12" r="2.6" fill="var(--accent)"/><path d="M7 11 10.5 6.5M7 13l3.5 4.5M14 6.5 17 10.5M14 17.5l3-4" stroke="var(--edge)" stroke-width="1.4" fill="none"/></svg>
+      <span class="t">Shared Deep Research</span>
+    </div>
+    <nav class="tabs" aria-label="Sections">
+      <a href="#overview">Overview</a>
+      <a href="#flow">Flow</a>
+      <a href="#phases">Phase guide</a>
+      <a href="#rubrics">Rubrics</a>
+      <a href="#quickstart">Quickstart</a>
+      <a href="#commands">Commands</a>
+      <a href="#config">Configuration</a>
+      <a href="#anonymity">Anonymity &amp; provenance</a>
+      <a href="#files">Files</a>
+    </nav>
+    <button class="theme-btn" id="themeBtn" title="Toggle theme">Theme</button>
+  </div>
+</header>
+
+<main class="wrap" id="main-content" tabindex="-1">
+<!-- ============================================================ overview -->
+<section class="view" id="v-overview">
+  <span class="eyebrow">A field guide to evidence you can audit</span>
+  <h1 class="hero-title">One question.<br>Many perspectives.<br><span>Evidence under scrutiny.</span></h1>
+  <p class="lead">The harness sends one research question to several agent CLIs (<code>agy</code>, <code>codex</code>, <code>claude</code>). They research it independently, review each other's reports without knowing who wrote them, reassess with every review in hand, and each writes a final synthesis. Each step is committed to git, and the ledger records which framework and model produced each artifact. Models never see that information.</p>
+  <div class="hero-actions"><a class="btn primary" href="#quickstart">Start a research run ↗</a><a class="btn" href="#flow">Explore the interactive flow</a><a class="btn" href="#rubrics">Inspect the rubrics</a></div>
+  <div class="stat-strip"><div><b>5</b><span>phases, including intake</span></div><div><b>18</b><span>fresh sessions with 3 agents</span></div><div><b>7</b><span>scored review dimensions</span></div><div><b>0</b><span>dependencies for this guide</span></div></div>
+  <div class="grid" style="margin-top:22px">
+    <div class="card"><span class="pill">Phase 0</span><h3>Intake</h3>The question and its scope go into <code>QUESTION.md</code> and the ledger.</div>
+    <div class="card"><span class="pill">Phase 1 · N sessions</span><h3>Research</h3>Each agent writes an independent, cited report.</div>
+    <div class="card"><span class="pill">Phase 2 · N × reports</span><h3>Blind review</h3>Every agent reviews every report, one fresh session per review, including its own report without knowing it.</div>
+    <div class="card"><span class="pill">Phase 3 · N sessions</span><h3>Reassessment</h3>Each agent reads all the reports and reviews, then rules on each report finding by finding.</div>
+    <div class="card"><span class="pill">Phase 4 · N sessions</span><h3>Synthesis</h3>Each agent combines all the reassessments into one final report.</div>
+  </div>
+  <div class="callout info"><b>Research done elsewhere?</b> <code>dr import</code> adds it as one more anonymous report. Every agent reviews it (unless you pass <code>--no-review</code>), rules on it in reassessment, and uses it in synthesis. It isn't an agent, so it adds no reviewer, reassessor or synthesizer sessions. <a href="#flow">Try it in the flow →</a></div>
+  <h2>Why it's built this way</h2>
+  <div class="grid">
+    <div class="card"><h3>Independence</h3>Each session is a new, non-interactive process without conversation continuity. This reduces carryover bias; writing style can still suggest authorship.</div>
+    <div class="card"><h3>Blindness</h3>Artifacts get random IDs. Agents work in throwaway folders outside the repo. Phrases where an agent names itself, its tools or its connectors are redacted.</div>
+    <div class="card"><h3>Provenance</h3>A SQLite ledger records the framework, version, model and where the model name came from, plus effort, timings, token usage and session IDs. Run <code>dr reveal</code> to rebuild the mapping without involving a model.</div>
+    <div class="card"><h3>Resumable</h3>Progress is committed after every session. Re-running skips finished sessions and retries failed ones. Each phase waits for the one before it.</div>
+  </div>
+  <p style="margin-top:22px"><a href="#flow">See the flow →</a></p>
+</section>
+
+<!-- ============================================================ flow -->
+<section class="view" id="v-flow">
+  <h1>Process flow</h1>
+  <p class="lead">The diagram updates live from the agent list. Hover over or click a node to see what it reads and writes. Turn on <em>Reveal provenance</em> to see the mapping that only the ledger knows.</p>
+  <div class="controls">
+    <div class="agents" id="agentChips" aria-label="Agents"></div>
+    <form class="add-agent" id="addAgent"><input id="newAgent" placeholder="+ agent" aria-label="Add agent name" maxlength="12"><button class="btn" type="submit">Add</button></form>
+  </div>
+  <div class="controls">
+    <label class="toggle"><input type="checkbox" id="reveal"> Reveal provenance (ledger view)</label>
+    <button class="btn primary" id="playBtn">▶ Play phases</button>
+    <button class="btn" id="resetBtn">Reset</button>
+    <span class="counter" id="counter"></span>
+  </div>
+  <div class="controls">
+    <span class="stepper" aria-label="Imported reports">Imported reports
+      <button class="btn" type="button" id="impMinus" aria-label="Remove an imported report">−</button><b id="impN">0</b><button class="btn" type="button" id="impPlus" aria-label="Add an imported report">+</button></span>
+    <label class="toggle" title="Off = imported with --no-review"><input type="checkbox" id="impReview" checked> Peer-review imported reports</label>
+  </div>
+  <div class="flow-box"><svg id="flow" role="img" aria-label="Phase flow diagram"></svg></div>
+  <div class="legend">
+    <span><i></i> required input</span>
+    <span><i class="f"></i> reference input (original reports, given to synthesis for sources)</span>
+    <span>grey nodes = anonymous view (what models and artifacts show)</span>
+    <span><i class="imp"></i> imported report (<code>dr import</code>, no session of its own)</span>
+  </div>
+  <div class="card detail" id="detail"></div>
+  <div class="phase-cards" id="phaseCards"></div>
+</section>
+
+<section class="view" id="v-phases"><span class="eyebrow">The method · phase by phase</span><h1>From question to defensible answer</h1><p class="lead">Each stage has a different job. Select a phase to inspect its inputs, outputs, purpose and working contract.</p><div class="chapter-nav" aria-label="Select a phase"><button type="button" data-phase="0" aria-pressed="true" aria-controls="phase-0">00 · Intake</button><button type="button" data-phase="1" aria-pressed="false" aria-controls="phase-1">01 · Research</button><button type="button" data-phase="2" aria-pressed="false" aria-controls="phase-2">02 · Blind review</button><button type="button" data-phase="3" aria-pressed="false" aria-controls="phase-3">03 · Reassessment</button><button type="button" data-phase="4" aria-pressed="false" aria-controls="phase-4">04 · Synthesis</button></div><article class="card phase-panel" id="phase-0" aria-labelledby="phase-title-0" ><span class="pill">Phase 00</span><h2 id="phase-title-0">Intake</h2><p class="lead">Define the decision before gathering evidence.</p><p>A precise question keeps reviewers focused on the same audience, timeframe and decision. Scope reduces irrelevant research and makes coverage gaps assessable.</p><div class="grid"><div><h3>Reads</h3><p>Your question and optional scope notes.</p></div><div><h3>Produces</h3><p><code>QUESTION.md, run.json, INDEX.md and a ledger run record.</code></p></div></div><h3>What good work looks like</h3><ul><li>State what decision this research should support.</li><li>Specify audience, geography, timeframe and exclusions.</li><li>Import outside research now or before reassessment begins.</li></ul><div class="callout info">No agent session. The harness records intake and commits it when commits are enabled.</div><a href="#rubrics">Read the evaluation criteria and prompt contracts →</a></article><article class="card phase-panel" id="phase-1" aria-labelledby="phase-title-1" hidden><span class="pill">Phase 01</span><h2 id="phase-title-1">Research</h2><p class="lead">Build independent evidence bases.</p><p>Independent searches can uncover different sources and counterarguments. Shared mistakes can still occur, so later phases must check whether sources are truly independent.</p><div class="grid"><div><h3>Reads</h3><p>The question and scope only; no other reports.</p></div><div><h3>Produces</h3><p><code>01-research/R-*/report.md; one report per agent.</code></p></div></div><h3>What good work looks like</h3><ul><li>Decompose into 3–8 sub-questions.</li><li>Seek two independent sources for important claims, or mark single-source.</li><li>Search for counter-evidence; label facts, consensus, contested claims and inference.</li></ul><div class="callout info">N fresh sessions. Each report has eight required sections and numbered findings F1, F2, …</div><a href="#rubrics">Read the evaluation criteria and prompt contracts →</a></article><article class="card phase-panel" id="phase-2" aria-labelledby="phase-title-2" hidden><span class="pill">Phase 02</span><h2 id="phase-title-2">Blind review</h2><p class="lead">Test the claims against their sources.</p><p>An articulate report can cite real sources that do not support its claims. Blind review makes evidence and reasoning the basis for criticism and includes independent self-review.</p><div class="grid"><div><h3>Reads</h3><p>The question and exactly one anonymous report per session.</p></div><div><h3>Produces</h3><p><code>02-review/V-*/review.md; a separate review for each agent × reviewed report.</code></p></div></div><h3>What good work looks like</h3><ul><li>Verify at least 8 load-bearing claims, or all if fewer.</li><li>Independently spot-check at least 3 key claims.</li><li>Score seven dimensions, identify specific errors and assign a disposition to every finding.</li></ul><div class="callout info">N × (N + K) sessions, where K is the number of imported reports eligible for review. Imports with --no-review remain in later phases.</div><a href="#rubrics">Read the evaluation criteria and prompt contracts →</a></article><article class="card phase-panel" id="phase-3" aria-labelledby="phase-title-3" hidden><span class="pill">Phase 03</span><h2 id="phase-title-3">Reassessment</h2><p class="lead">Adjudicate disagreements on evidence.</p><p>Reviewers can be wrong. Reassessment separates refuted claims from unverified ones and examines common sources, conflicting verdicts and collective blind spots.</p><div class="grid"><div><h3>Reads</h3><p>All completed reports and reviews, grouped by report in a manifest.</p></div><div><h3>Produces</h3><p><code>03-reassessment/A-*/reassess_&lt;R-id&gt;.md for every report, plus overview.md.</code></p></div></div><h3>What good work looks like</h3><ul><li>Read every report and review.</li><li>Re-check important disputed claims yourself.</li><li>Rule on every finding and revise confidence; compare reliability across reports.</li></ul><div class="callout info">N sessions. Five finding rulings and a comparative reliability score of 1–5. Do not average reviewer opinions.</div><a href="#rubrics">Read the evaluation criteria and prompt contracts →</a></article><article class="card phase-panel" id="phase-4" aria-labelledby="phase-title-4" hidden><span class="pill">Phase 04</span><h2 id="phase-title-4">Synthesis</h2><p class="lead">Write a coherent, traceable answer.</p><p>Organizing by theme turns the evidence into a useful answer while retaining its uncertainty and audit trail. There are N final syntheses, rather than one automatically chosen winner.</p><div class="grid"><div><h3>Reads</h3><p>All reassessments as primary input, plus original reports for citations and nuance.</p></div><div><h3>Produces</h3><p><code>04-synthesis/S-*/synthesis.md; one final report per agent.</code></p></div></div><h3>What good work looks like</h3><ul><li>Merge duplicate findings and use a unified bibliography.</li><li>Resolve conflicting adjudications with reasoning and evidence.</li><li>Keep unresolved questions, refuted claims and R-/A- provenance visible.</li></ul><div class="callout info">N sessions. Ten required sections, final High/Medium/Low confidence, and a machine-readable summary.</div><a href="#rubrics">Read the evaluation criteria and prompt contracts →</a></article><h2>What happens when a session fails?</h2><p>A nonzero CLI exit or a CLI-reported error fails the task even if it wrote a long response or output file. Missing or undersized deliverables also fail. The harness records provenance and logs; rerunning skips completed tasks and retries failures up to <code>max_attempts</code>.</p><pre>bin/dr run &lt;run-id&gt;
+# Retry even after the attempt limit:
+bin/dr run &lt;run-id&gt; --retry-failed
+# Continue past an incomplete phase with at least two successful inputs:
+bin/dr run &lt;run-id&gt; --allow-partial</pre><p>Partial runs can have incomplete evidence. Later completed tasks are skipped on resume; use a new run for a fresh, comprehensive pipeline after changing the evidence base.</p></section>
+<section class="view" id="v-rubrics"><span class="eyebrow">Quality controls · inspect the contract</span><h1>How the work is evaluated</h1><p class="lead">These criteria come from the repository’s phase prompts. Expand any contract below to inspect the complete prompt, including the required report sections and JSON summaries. Everything is embedded in this file and available offline.</p><div class="callout info"><b>A rubric guides judgment.</b> Reviews score each dimension and Overall from 1–5, with a one-line justification. The prompts do not define numeric anchors or weights. The harness checks process success and deliverable existence/size; it does not automatically validate scores, JSON schemas, citations or research quality.</div><h2>The seven review dimensions</h2><div class="table-scroll"><table><thead><tr><th>Dimension</th><th>What the reviewer examines</th><th>Scale</th></tr></thead><tbody><tr><td><b>Factual accuracy</b></td><td>Are the claims correct under verification?</td><td>1–5 + justification</td></tr><tr><td><b>Citation fidelity</b></td><td>Do the cited sources say what the report claims?</td><td>1–5 + justification</td></tr><tr><td><b>Source quality</b></td><td>Are the sources primary, reputable and current?</td><td>1–5 + justification</td></tr><tr><td><b>Coverage / completeness</b></td><td>Does the report answer the actual question across relevant perspectives?</td><td>1–5 + justification</td></tr><tr><td><b>Reasoning & calibration of confidence</b></td><td>Does the reasoning hold, and does confidence match the evidence?</td><td>1–5 + justification</td></tr><tr><td><b>Treatment of counter-evidence</b></td><td>Does the report engage with strong competing evidence?</td><td>1–5 + justification</td></tr><tr><td><b>Clarity & traceability</b></td><td>Can a reader locate claims, sources, methods and limitations?</td><td>1–5 + justification</td></tr></tbody></table></div><h2>From criticism to a final ruling</h2><div class="grid"><div class="card"><span class="pill">Review · disposition</span><h3>What should happen to a finding?</h3><p>Accept · Accept with caveat · Revise · Reject · Unverifiable</p><p>Errors are ranked Critical / Major / Minor. Each criticism points to a finding, section or short quote and supplies evidence where possible.</p></div><div class="card"><span class="pill">Reassessment · ruling</span><h3>What survives scrutiny?</h3><p>Confirmed · Confirmed-with-caveat · Revised · Refuted · Unresolved</p><p>Record revised confidence and the basis for each ruling. The overview compares report reliability on a 1–5 scale with justification.</p></div><div class="card"><span class="pill">Synthesis · confidence</span><h3>How much trust is warranted?</h3><p>High · Medium · Low</p><p>Use independent corroboration and performance under review. Keep unresolved conflicts visible. Do not reinstate refuted claims without new evidence.</p></div></div><h2>Full prompt contracts</h2><p>These are source snapshots, including template placeholders filled by the harness at runtime. The common operating rules are appended to each phase.</p><details class="rubric"><summary>Research · method &amp; eight report sections</summary><div class="rubric-body"><p>Source: <a href="https://github.com/PhillipNordwall/shared_deep_research/blob/main/prompts/research.md"><code>prompts/research.md</code></a></p><pre class="prompt-source" data-source="research"># Task: Independent Deep Research
+
+You are a senior research analyst producing an **independent, evidence-based deep
+research report** on the question below. Several other analysts are researching the
+same question on their own, and their reports will later be cross-reviewed. What
+makes yours valuable is depth, accuracy, and sourcing you can trace, not length.
+
+## Research question
+{{QUESTION}}
+
+## Scope / context notes
+{{SCOPE}}
+
+(The same text is in `inputs/question.md`.)
+
+## Method (do all of these)
+1. **Decompose** the question into 3–8 sub-questions. Write them down before
+   researching. Identify which ones are factual, which are interpretive, and which
+   are predictive.
+2. **Search broadly, then deeply.** Use web search/fetch extensively. Prefer primary
+   sources (papers, official docs, filings, datasets, standards, direct statements)
+   over secondary coverage. For anything important, find **at least two independent
+   sources**, or label it single-source.
+3. **Seek disconfirming evidence.** For each major finding, actively search for
+   counter-evidence, criticism, failed replications, or competing explanations.
+4. **Check recency.** Note publication dates. Flag where the evidence may be stale
+   or the situation is changing fast.
+5. **Separate** established facts, expert consensus, contested claims, and your own
+   inference, and label each one.
+6. **Quantify** where possible, with units, dates, and the source of each number.
+
+## Deliverables
+- `output/report.md`: the report, using **exactly** these top-level sections in
+  this order:
+
+```
+# Research Report
+## 1. Executive Summary            (5–10 bullet answer to the question, each with a confidence tag)
+## 2. Sub-questions                 (the decomposition from step 1)
+## 3. Key Findings                  (numbered F1, F2, … ; each: claim · evidence · sources [S#] · confidence High/Medium/Low · type Fact/Consensus/Contested/Inference)
+## 4. Detailed Analysis             (narrative, organized by sub-question)
+## 5. Counter-evidence &amp; Contested Points
+## 6. Gaps, Limitations &amp; Open Questions
+## 7. Methodology &amp; Search Log      (what you searched, what you fetched, what failed or was paywalled)
+## 8. Sources                       (numbered [S1]…; title, publisher/author, date, URL, accessed {{DATE}}, one-line note on reliability)
+```
+
+Every non-trivial claim in sections 1, 3 and 4 must cite `[S#]` or be explicitly
+labelled *Inference* or *Unsourced*.
+
+{{COMMON}}
+</pre></div></details><details class="rubric"><summary>Review · procedure, scores &amp; eleven sections</summary><div class="rubric-body"><p>Source: <a href="https://github.com/PhillipNordwall/shared_deep_research/blob/main/prompts/review.md"><code>prompts/review.md</code></a></p><pre class="prompt-source" data-source="review"># Task: Independent Blind Review of a Deep Research Report
+
+You are an **independent expert reviewer and fact-checker**. You&#x27;ve been handed
+**one** deep research report written by an unknown analyst in answer to the
+question below. Your review will be read alongside reviews by other independent
+reviewers, and then used to decide which findings should be trusted. The process
+depends on you being **rigorous, skeptical, specific, and fair**. A vague or
+deferential review is a failed review. So is an unfairly harsh one.
+
+## Research question
+{{QUESTION}}
+
+## Scope / context notes
+{{SCOPE}}
+
+## Input
+- `inputs/question.md`: the question
+- `inputs/report_{{SUBJECT_ID}}.md`: the report under review (ID `{{SUBJECT_ID}}`)
+
+## Reviewer stance
+- Assume nothing in the report is correct until you&#x27;ve checked it. Also assume
+  nothing is wrong just because it&#x27;s surprising.
+- Evaluate the report **against the question**, not against the report you would
+  have written. But do point out important things it missed.
+- Don&#x27;t guess who or what wrote the report. Authorship doesn&#x27;t matter.
+- Every criticism must point to a specific location (finding ID, section, or a
+  short quote) and explain *why*, with evidence where possible.
+
+## Required procedure
+1. **Read the whole report** before judging it. Reports don&#x27;t all follow the same
+   template. If this one has no `F#` finding IDs, number its main findings yourself
+   (F1, F2, … in order of appearance, each with a short quote) and use those IDs below.
+2. **Verify citations.** Pick the report&#x27;s **most load-bearing claims**: at least
+   8 of them, or all of them if there are fewer, prioritizing the Executive Summary
+   and the High-confidence findings. For each one, actually open the cited source
+   (web fetch/search) and determine:
+   - *Exists?* Does the source exist at that URL or under that title?
+   - *Supports?* Does it actually say what is claimed: Supported / Partially /
+     Not supported / Contradicted?
+   - *Quality.* Primary or secondary? Reputable? Current?
+   If you can&#x27;t access a source, say so. Don&#x27;t guess.
+3. **Spot-check independently.** For at least 3 key claims, do your own quick search
+   for corroborating or contradicting evidence that the report didn&#x27;t cite.
+4. **Audit the reasoning.** Look for logical leaps, correlation-vs-causation errors,
+   cherry-picking, overgeneralization, base-rate neglect, confidence labels that
+   don&#x27;t match the evidence, internal contradictions, and stale data.
+5. **Audit coverage.** Which sub-questions, perspectives, stakeholders, regions,
+   timeframes, or major sources are missing? Which strongest counter-arguments go
+   unaddressed?
+6. **Check the form.** Are claims traceable? Are inference and fact clearly separated?
+   Is the Methodology section honest about its limitations?
+
+## Deliverable
+- `output/review.md`, using **exactly** this structure:
+
+~~~markdown
+# Review of {{SUBJECT_ID}}
+## 1. Summary Verdict
+(3–6 sentences: overall reliability, the biggest strengths, the most serious problems.)
+
+## 2. Scores (1–5, with one-line justification each)
+| Dimension | Score | Justification |
+|---|---|---|
+| Factual accuracy | | |
+| Citation fidelity (sources say what is claimed) | | |
+| Source quality | | |
+| Coverage / completeness vs the question | | |
+| Reasoning &amp; calibration of confidence | | |
+| Treatment of counter-evidence | | |
+| Clarity &amp; traceability | | |
+| **Overall** | | |
+
+## 3. Claim Verification Table
+| # | Report location | Claim (short) | Cited source | Source exists? | Supports claim? | Notes / evidence |
+|---|---|---|---|---|---|---|
+
+## 4. Independent Spot-checks
+(Claim → what you searched → what you found → impact on the report&#x27;s conclusion. Include URLs.)
+
+## 5. Errors &amp; Unsupported Claims
+(Ranked by severity: Critical / Major / Minor. Each: location · problem · correction or evidence.)
+
+## 6. Reasoning &amp; Calibration Issues
+
+## 7. Coverage Gaps &amp; Missing Perspectives
+
+## 8. Strongest Contributions
+(The findings from this report that you judge most reliable and valuable, and why.)
+
+## 9. Findings Disposition
+| Finding | Disposition (Accept / Accept with caveat / Revise / Reject / Unverifiable) | Reason |
+|---|---|---|
+(Cover every F# in the report, or every finding you numbered.)
+
+## 10. Recommendations to Improve
+
+## 11. Machine-readable Summary
+```json
+{&quot;subject&quot;: &quot;{{SUBJECT_ID}}&quot;, &quot;overall_score&quot;: 0, &quot;scores&quot;: {&quot;accuracy&quot;:0,&quot;citation_fidelity&quot;:0,&quot;source_quality&quot;:0,&quot;coverage&quot;:0,&quot;reasoning&quot;:0,&quot;counter_evidence&quot;:0,&quot;clarity&quot;:0},
+ &quot;claims_checked&quot;: 0, &quot;claims_supported&quot;: 0, &quot;claims_partial&quot;: 0, &quot;claims_unsupported&quot;: 0, &quot;claims_contradicted&quot;: 0, &quot;sources_inaccessible&quot;: 0,
+ &quot;critical_errors&quot;: 0, &quot;major_errors&quot;: 0, &quot;minor_errors&quot;: 0,
+ &quot;dispositions&quot;: {&quot;F1&quot;: &quot;Accept&quot;}}
+```
+~~~
+
+{{COMMON}}
+</pre></div></details><details class="rubric"><summary>Reassessment · rulings &amp; cross-report overview</summary><div class="rubric-body"><p>Source: <a href="https://github.com/PhillipNordwall/shared_deep_research/blob/main/prompts/reassessment.md"><code>prompts/reassessment.md</code></a></p><pre class="prompt-source" data-source="reassessment"># Task: Holistic Reassessment of Deep Research Reports in Light of Peer Review
+
+You are a **senior research adjudicator**. Several analysts independently researched
+the question below. Each report was then reviewed several times by independent blind
+reviewers. You now have **all the reports and all the reviews**. Your job is to
+reassess **each report** holistically: decide which of its findings survive scrutiny,
+settle disagreements between reviewers, and recalibrate confidence.
+
+## Research question
+{{QUESTION}}
+
+## Scope / context notes
+{{SCOPE}}
+
+## Inputs
+- `inputs/question.md`
+- `inputs/reports/&lt;REPORT_ID&gt;.md`: the original research reports
+- `inputs/reviews/&lt;REVIEW_ID&gt;.md`: the reviews. Each one starts with a header naming
+  the report it reviews.
+- `inputs/MANIFEST.md`: which reviews belong to which report
+
+{{INPUT_MANIFEST}}
+
+## Stance
+- Reviewers can be wrong too. Don&#x27;t average opinions. **Adjudicate**: when reviewers
+  disagree with each other or with the report, decide who&#x27;s right on the evidence,
+  and re-check the source yourself (web fetch/search) whenever the point matters.
+- A claim isn&#x27;t true just because several reports or reviewers repeat it. Check
+  whether they rely on the same underlying source.
+- Treat every report the same way. Don&#x27;t guess authorship, and don&#x27;t favor any
+  report&#x27;s style.
+- Separate &quot;the report is wrong&quot; from &quot;the report is unverified&quot;.
+- Reports don&#x27;t all follow the same template, and a report can have few or no
+  reviews. Where a report has no `F#` IDs, use the IDs its reviewers assigned, or
+  number its findings yourself. Where reviews are missing or thin, do the checking
+  yourself, and say so in section 2.
+
+## Procedure
+1. Read every report and every review in full.
+2. For each report, build a list of its findings and collect every reviewer&#x27;s
+   verdict on each one.
+3. Where reviewers conflict, or a disposition is Revise/Reject/Unverifiable for an
+   important finding, investigate it yourself and rule on it.
+4. Look **across** reports. Corroboration from independent sources raises
+   confidence. Contradictions between reports must be named and resolved, or
+   explicitly left open.
+5. Record anything important that **every** report missed.
+
+## Deliverables
+One file **per report**, plus one overview:
+
+{{OUTPUTS}}
+
+Each `reassess_&lt;REPORT_ID&gt;.md` must use this structure:
+
+~~~markdown
+# Reassessment of &lt;REPORT_ID&gt;
+## 1. Reassessed Verdict            (reliability after all reviews; 3–6 sentences)
+## 2. Reviewer Consensus &amp; Disagreements  (where reviewers agreed, where they split, and your ruling with evidence)
+## 3. Finding-by-Finding Reassessment
+| Finding | Original confidence | Reviewer dispositions | Your ruling (Confirmed / Confirmed-with-caveat / Revised / Refuted / Unresolved) | Revised confidence | Basis (sources, checks you did) |
+|---|---|---|---|---|---|
+## 4. Corrections               (corrected statements for every Revised/Refuted finding, with sources)
+## 5. Unique Contributions      (valuable findings that appear only in this report)
+## 6. Residual Risks            (what still might be wrong and why)
+## 7. Machine-readable Summary
+```json
+{&quot;report&quot;: &quot;&lt;REPORT_ID&gt;&quot;, &quot;reassessed_overall&quot;: 0, &quot;findings&quot;: {&quot;F1&quot;: {&quot;ruling&quot;: &quot;Confirmed&quot;, &quot;confidence&quot;: &quot;High&quot;}}}
+```
+~~~
+
+`overview.md` must use this structure:
+
+~~~markdown
+# Cross-Report Overview
+## 1. Comparative Reliability   (rank the reports with justification; scores 1–5)
+## 2. Cross-Report Agreements   (findings corroborated by multiple reports, and whether the sources are truly independent)
+## 3. Cross-Report Conflicts    (each conflict, the evidence, your ruling or &quot;unresolved&quot;)
+## 4. Collective Blind Spots    (what every report missed)
+## 5. Quality of the Reviews    (were any reviews unreliable? where and why — judge content only)
+~~~
+
+{{COMMON}}
+</pre></div></details><details class="rubric"><summary>Synthesis · evidence rules &amp; ten sections</summary><div class="rubric-body"><p>Source: <a href="https://github.com/PhillipNordwall/shared_deep_research/blob/main/prompts/synthesis.md"><code>prompts/synthesis.md</code></a></p><pre class="prompt-source" data-source="synthesis"># Task: Synthesize a Final, Cohesive Deep Research Report
+
+You are the **lead author** writing the definitive answer to the question below.
+The evidence base comes from several independent research reports, each blind-reviewed
+by multiple reviewers and then holistically reassessed by several independent
+adjudicators. You have **all the reassessments** (your primary input) and the
+**original reports** (for source details and nuance).
+
+## Research question
+{{QUESTION}}
+
+## Scope / context notes
+{{SCOPE}}
+
+## Inputs
+- `inputs/question.md`
+- `inputs/reassessments/&lt;REASSESSMENT_ID&gt;/`: each holds `overview.md` and one
+  `reassess_&lt;REPORT_ID&gt;.md` per report. **These are your primary input.**
+- `inputs/reports/&lt;REPORT_ID&gt;.md`: the original reports, to recover sources, numbers
+  and detail. Don&#x27;t reinstate a claim the reassessments refuted unless you have
+  new evidence.
+- `inputs/MANIFEST.md`
+
+{{INPUT_MANIFEST}}
+
+## Rules for synthesis
+- **Weigh the adjudications.** Where the reassessments agree, adopt their consensus.
+  Where they disagree, compare their reasoning and evidence, re-verify the deciding
+  sources yourself if needed (web fetch/search), and rule. Show your ruling.
+- **Integrate. Don&#x27;t concatenate.** Organize by sub-question or theme, not by
+  source report. Merge duplicate findings and keep the best sources for each.
+- **Calibrate.** Every finding gets a final confidence level (High/Medium/Low) based
+  on independent corroboration and how well it held up under review.
+- **Keep it traceable.** Cite original sources as `[S#]` in a unified bibliography.
+  Also note which report and assessment IDs support each finding (e.g.
+  `(R-1a2b3c4d F3; A-…)`) so the result can be audited.
+- **Keep uncertainty visible.** Unresolved conflicts and collective blind spots must
+  appear in the final report. Don&#x27;t smooth them away.
+- Original reports vary in structure. Cite their findings by the IDs the
+  reassessments used.
+- Don&#x27;t guess the authorship of any input.
+
+## Deliverable
+- `output/synthesis.md`, with **exactly** these sections:
+
+~~~markdown
+# Synthesized Deep Research Report
+## 1. Bottom Line                       (direct answer to the question in ≤ 200 words)
+## 2. Executive Summary                 (bulleted, each with confidence)
+## 3. Consolidated Findings             (numbered C1, C2, … ; claim · confidence · evidence · sources [S#] · provenance (R-/A- IDs))
+## 4. Integrated Analysis               (narrative by sub-question/theme)
+## 5. Resolved Disagreements            (what the inputs disagreed on and how you ruled, with evidence)
+## 6. Unresolved Questions &amp; Blind Spots
+## 7. Refuted or Withdrawn Claims       (claims from the original reports that did not survive review, and why)
+## 8. Confidence &amp; Methodology Notes    (how evidence was weighed; limits of this synthesis)
+## 9. Unified Bibliography              ([S1]…; title, author/publisher, date, URL)
+## 10. Machine-readable Summary
+```json
+{&quot;bottom_line&quot;: &quot;&quot;, &quot;findings&quot;: [{&quot;id&quot;: &quot;C1&quot;, &quot;claim&quot;: &quot;&quot;, &quot;confidence&quot;: &quot;High&quot;, &quot;provenance&quot;: [&quot;R-…&quot;]}], &quot;unresolved&quot;: [&quot;&quot;]}
+```
+~~~
+
+{{COMMON}}
+</pre></div></details><details class="rubric"><summary>Common rules · anonymity, honesty &amp; workspace</summary><div class="rubric-body"><p>Source: <a href="https://github.com/PhillipNordwall/shared_deep_research/blob/main/prompts/_common.md"><code>prompts/_common.md</code></a></p><pre class="prompt-source" data-source="_common">## Operating rules (apply to this whole task)
+
+- **Workspace.** You are working in an isolated directory. Inputs are under `inputs/`.
+  Write your deliverables **only** to the paths listed under *Deliverables*, inside `output/`.
+  Do not modify `inputs/`. You don&#x27;t need, and shouldn&#x27;t look for, anything outside this directory.
+- **Anonymity.** This is a blind, multi-party process. Do **not** state or hint at
+  which AI model, vendor, product, or tool you are (no &quot;As Claude…&quot;, &quot;I&#x27;m Codex…&quot;,
+  &quot;Generated by Gemini…&quot;, signatures, or model IDs). Don&#x27;t speculate about who wrote
+  any input document. Judge every input only on its content. You can still mention
+  companies or products when they&#x27;re part of the research subject itself.
+  When you describe your method, name tools only generically (&quot;web search&quot;,
+  &quot;web fetch&quot;, &quot;file reader&quot;). Never name your agent, CLI, connectors, plugins,
+  MCP servers, skills, or runtime environment.
+- **Non-interactive.** No human is available to answer questions. Make reasonable,
+  explicitly stated assumptions and keep going. Never stop to ask for confirmation.
+- **Honesty over polish.** Say what you verified and what you didn&#x27;t. Mark uncertainty.
+  Never invent sources, quotes, statistics, URLs, or dates. If a tool or the web is
+  unavailable, say so plainly in the deliverable rather than writing from memory as
+  if it were sourced.
+- **Today&#x27;s date** is {{DATE}}. Treat recency accordingly.
+- **Finish** by making sure every deliverable file exists and is complete, then reply
+  with one line: `DONE: &lt;comma-separated deliverable paths&gt;`.
+</pre></div></details></section>
+<!-- ============================================================ quickstart -->
+<section class="view" id="v-quickstart">
+  <h1>Quickstart</h1>
+  <p class="lead">You need Python 3.11+ with nothing to install, the agent CLIs on your <code>PATH</code> and logged in, and this repo checked out.</p>
+  <ol class="steps">
+    <li><h3>Check what each tool offers</h3>
+      Lists each agent's configured model plus the models and thinking levels it can use.
+      <pre>bin/dr options</pre></li>
+    <li><h3>Pick models and thinking levels</h3>
+      Choose interactively, or set values directly. The edit keeps the comments in <code>config.toml</code>.
+      <pre>bin/dr config
+<span class="c"># or non-interactively, committing the change:</span>
+bin/dr config --set codex.model=gpt-6.1-sol --set codex.effort=high --commit</pre></li>
+    <li><h3>Check the plumbing cheaply</h3>
+      Offline first (mock agents, no tokens), then the real CLIs on cheap models.
+      <pre>python3 -m unittest discover -s tests -p 'test_*.py'
+tests/offline.sh
+tests/smoke.sh research,review</pre></li>
+    <li><h3>Record your question (intake)</h3>
+      <pre>bin/dr new "What is the current evidence on X for Y?" \
+  --scope "Audience: engineering leads. Timeframe: 2023-present. Exclude vendor marketing."</pre>
+      This prints the run ID, for example <code>2026-11-04-what-is-the-current-evidence-on-x</code>.</li>
+    <li><h3>Optional: add research done elsewhere</h3>
+      Reports from another tool or done offline join as anonymous <code>R-</code> reports. They're reviewed, reassessed and synthesized with the rest, and add no agent sessions of their own. Import before reassessment starts.
+      <pre>bin/dr import &lt;run-id&gt; offline-report.md --label vendor-deep-research
+<span class="c"># skip peer review, but still reassess + synthesize it:</span>
+bin/dr import &lt;run-id&gt; notes.md --no-review
+<span class="c"># or at intake:</span>
+bin/dr new "question" --import offline-report.md</pre></li>
+    <li><h3>Run it</h3>
+      A full run is 3N + N² sessions (18 with three agents), plus N reviews for each imported report, and can take hours. Run it detached.
+      <pre>nohup bin/dr run &lt;run-id&gt; &gt; run.log 2&gt;&amp;1 &amp;
+bin/dr status &lt;run-id&gt; --blind</pre></li>
+    <li><h3>Read and reveal</h3>
+      Start with <code>runs/&lt;run-id&gt;/INDEX.md</code>, then the <code>04-synthesis</code> reports. Reveal the mapping only after you've read them.
+      <pre>bin/dr reveal &lt;run-id&gt;
+bin/dr reveal &lt;run-id&gt; --out mapping.json</pre></li>
+  </ol>
+  <div class="callout">If a session fails, run <code>bin/dr run &lt;run-id&gt;</code> again. Finished work is kept. To continue past an incomplete phase, add <code>--allow-partial</code>; at least two artifacts from the preceding phase must have succeeded. To retry tasks that have used up their attempts, add <code>--retry-failed</code>.</div>
+</section>
+
+<!-- ============================================================ commands -->
+<section class="view" id="v-commands">
+  <h1>Commands</h1>
+  <p class="lead">Everything goes through <code>bin/dr</code>. Pass <code>--config PATH</code> before the subcommand to use a different config file.</p>
+  <div class="table-scroll"><table>
+    <thead><tr><th>Command</th><th>What it does</th><th>Useful flags</th></tr></thead>
+    <tbody id="cmdTable"></tbody>
+  </table></div>
+</section>
+
+<!-- ============================================================ config -->
+<section class="view" id="v-config">
+  <h1>Configuration</h1>
+  <p class="lead"><code>config.toml</code> holds the harness settings, the per-phase timeouts, and one <code>[[agents]]</code> block per interface.</p>
+  <pre>[harness]
+ledger_dir = "ledger"                  <span class="c"># provenance DB + raw logs (point outside repo for stricter setups)</span>
+work_root = "~/.cache/dr-harness/work" <span class="c"># isolated agent workspaces — must be outside the repo</span>
+max_parallel = 3                       <span class="c"># concurrent sessions per phase</span>
+max_attempts = 2
+commit = true
+
+[timeouts]                             <span class="c"># seconds per session</span>
+research = 5400
+review = 2700
+reassessment = 3600
+synthesis = 3600
+
+[[agents]]
+name = "codex"                         <span class="c"># label recorded in the ledger only</span>
+framework = "codex"                    <span class="c"># adapter: claude | codex | agy | mock</span>
+model = ""                             <span class="c"># "" = CLI default (detected + recorded)</span>
+effort = "high"                        <span class="c"># thinking level, "" = CLI default</span>
+extra_args = ["-s", "workspace-write", ...]</pre>
+  <h2>Models and thinking levels</h2>
+  <div class="table-scroll"><table>
+    <thead><tr><th>Framework</th><th>Where models come from</th><th>How the thinking level is set</th><th>How the model actually used is detected</th></tr></thead>
+    <tbody>
+      <tr><td><code>agy</code></td><td>live from <code>agy models</code></td><td>Level is part of the model ID (<code>-low/-medium/-high</code>), plus a separate <code>--effort</code> flag</td><td>explicit setting, or <code>~/.gemini/antigravity-cli/settings.json</code></td></tr>
+      <tr><td><code>codex</code></td><td><code>~/.codex/models_cache.json</code>, which lists levels per model</td><td><code>-c model_reasoning_effort=…</code> (low … max, ultra on some models)</td><td>explicit setting, or <code>~/.codex/config.toml</code></td></tr>
+      <tr><td><code>claude</code></td><td>Built-in list of aliases and IDs. The CLI can't list models, but it accepts any ID.</td><td><code>--effort</code> (low … max)</td><td>From the CLI's JSON output (<code>modelUsage</code>). The main model is the highest-cost one, and subagent models are recorded too.</td></tr>
+    </tbody>
+  </table></div>
+  <h2>Permissions in headless mode</h2>
+  <div class="table-scroll"><table>
+    <thead><tr><th>Agent</th><th>Default profile</th></tr></thead>
+    <tbody>
+      <tr><td><code>claude</code></td><td><code>acceptEdits</code> with an allow-list (web, files, subagents). <code>Bash</code> is disallowed, and <code>--strict-mcp-config</code> keeps your personal MCP connectors from loading.</td></tr>
+      <tr><td><code>codex</code></td><td>The <code>workspace-write</code> sandbox with network access and live web search</td></tr>
+      <tr><td><code>agy</code></td><td><code>--dangerously-skip-permissions</code> (agy has no finer-grained headless mode)</td></tr>
+    </tbody>
+  </table></div>
+  <h2>Adding an interface</h2>
+  <p>Add an <code>[[agents]]</code> block. For a new CLI, subclass <code>Framework</code> in <code>harness/frameworks.py</code>: build the argv, parse the output (final text, session ID, usage, model), and read the CLI's default model. Model discovery for <code>dr options</code> goes in <code>harness/options.py</code>.</p>
+</section>
+
+<!-- ============================================================ anonymity -->
+<section class="view" id="v-anonymity">
+  <h1>Anonymity &amp; provenance</h1>
+  <p class="lead">Models only ever see anonymous inputs inside a throwaway workspace. The mapping from artifact to framework and model exists only in the ledger.</p>
+  <div class="flow-box"><svg id="iso" viewBox="0 0 960 340" role="img" aria-label="Isolation between repository and agent workspace">
+    <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10z" fill="var(--edge-hi)"/></marker></defs>
+    <rect class="zone-repo" x="14" y="14" width="470" height="312" rx="12"/>
+    <text x="30" y="40" font-weight="600">Repository (git)</text>
+    <text x="30" y="57" class="m">The harness can read and write everything here.</text>
+    <rect class="box" x="30" y="74" width="210" height="96" rx="8"/>
+    <text x="44" y="96" font-weight="600">runs/&lt;run-id&gt;/</text>
+    <text x="44" y="116" class="mono">01-research/R-7f3a…</text>
+    <text x="44" y="134" class="mono">02-review/V-c1d9…</text>
+    <text x="44" y="152" class="m">anonymous artifacts</text>
+    <rect class="box" x="256" y="74" width="212" height="96" rx="8"/>
+    <text x="270" y="96" font-weight="600">ledger/ledger.sqlite</text>
+    <text x="270" y="116" class="mono">R-7f3a → codex 0.166</text>
+    <text x="270" y="134" class="mono">  gpt-6-luna · high</text>
+    <text x="270" y="152" class="m">the only place with the mapping</text>
+    <rect class="box" x="30" y="190" width="438" height="54" rx="8"/>
+    <text x="44" y="212" font-weight="600">git history</text>
+    <text x="44" y="231" class="m">commit messages use artifact IDs only</text>
+    <text x="30" y="282" class="m">After each session: redact self-ID and tool names,</text>
+    <text x="30" y="300" class="m">copy output, write the ledger row, commit.</text>
+    <rect class="zone-ws" x="576" y="14" width="370" height="312" rx="12"/>
+    <text x="592" y="40" font-weight="600">Agent workspace (throwaway)</text>
+    <text x="592" y="57" class="m">~/.cache/dr-harness/work/ws-… (outside the repo)</text>
+    <rect class="box" x="592" y="74" width="338" height="96" rx="8"/>
+    <text x="606" y="96" font-weight="600">inputs/   (fresh copies, order shuffled)</text>
+    <text x="606" y="116" class="mono">question.md  MANIFEST.md</text>
+    <text x="606" y="134" class="mono">reports/R-7f3a….md  reviews/V-….md</text>
+    <text x="606" y="152" class="m">no agent names, no ledger, no git</text>
+    <rect class="box" x="592" y="190" width="338" height="54" rx="8"/>
+    <text x="606" y="212" font-weight="600">output/</text>
+    <text x="606" y="231" class="m">the only thing copied back</text>
+    <text x="592" y="291" class="m">One new non-interactive CLI process per session.</text>
+    <path class="arr" d="M486 122 L 574 122" marker-end="url(#ah)"/>
+    <text x="530" y="112" class="m" text-anchor="middle">stage</text>
+    <path class="arr" d="M574 217 L 486 217" marker-end="url(#ah)"/>
+    <text x="530" y="207" class="m" text-anchor="middle">harvest</text>
+    <path class="block" d="M523 152 l14 14 m0 -14 l-14 14"/>
+    <text x="530" y="184" class="m" text-anchor="middle">no access</text>
+  </svg></div>
+  <h2>How blindness is protected</h2>
+  <div class="grid">
+    <div class="card"><h3>Random IDs</h3><code>R-</code>, <code>V-</code>, <code>A-</code> and <code>S-</code> plus 8 random hex characters. Task creation order, execution order and input order are all shuffled.</div>
+    <div class="card"><h3>Prompt rules</h3>Agents must not name themselves, their tools, connectors, MCP servers or environment, and must not guess who wrote what.</div>
+    <div class="card"><h3>Redaction</h3>Phrases like "As Claude…", "generated by Gemini…" or "Codex CLI sandbox" are replaced with <code>[identity redacted]</code>. Tooling residue such as chat citation tokens (<code>citeturn0search3</code>, <code>【4†source】</code>) and <code>utm_source=</code> URL parameters is removed. Each redaction is logged in the ledger.</div>
+    <div class="card"><h3>Fixed formats</h3>Every phase requires the same section headings, so models' styles are harder to tell apart.</div>
+  </div>
+  <div class="callout">Known limits: writing style can still give a model away, and an agent with shell access could go looking around your filesystem. For stricter separation, set <code>ledger_dir</code> to a path outside the repo.</div>
+  <h2>What the ledger records per session</h2>
+  <div class="table-scroll"><table><tbody>
+    <tr><th>Identity</th><td>agent name, framework, framework version (<code>&lt;cli&gt; --version</code>), model, model source (<code>cli-output</code> / <code>explicit</code> / <code>cli-config</code>), every model used, effort</td></tr>
+    <tr><th>Timing</th><td>created, started and finished times (UTC), duration, attempts</td></tr>
+    <tr><th>Execution</th><td>command line (prompt removed), exit code, session or thread ID, token and cost usage, error, raw log path</td></tr>
+    <tr><th>Lineage</th><td>artifact ID, subject (the report a review is about), input artifact IDs</td></tr>
+    <tr><th>Anonymity</th><td>the redactions applied to the output</td></tr>
+    <tr><th>Imports</th><td><code>framework = external</code>, your label as the model (source <code>import</code>), source path, sha256, <code>--no-review</code> if given; the unredacted original in <code>ledger/logs/&lt;run&gt;/&lt;R&gt;.original.md</code></td></tr>
+  </tbody></table></div>
+</section>
+
+<!-- ============================================================ files -->
+<section class="view" id="v-files">
+  <h1>Files</h1>
+  <pre>bin/dr                     entry point (python3 -m harness)
+config.toml                agents, timeouts, parallelism
+index.html                 this page
+README.md · PLAN.md        usage · design and decisions
+prompts/
+  _common.md               rules shared by all phases (workspace, anonymity, honesty)
+  research.md  review.md  reassessment.md  synthesis.md
+harness/
+  core.py                  phases, planning, staging, execution, harvest, git
+  frameworks.py            CLI adapters (claude, codex, agy, mock)
+  options.py               model / thinking-level discovery, config editing
+  anonymize.py             random IDs, self-identification redaction, tooling-residue scrub
+  ledger.py                SQLite provenance ledger
+  cli.py                   dr subcommands (new, import, run, status, reveal, …)
+tests/
+  offline.sh               mock agents + imports, full pipeline, leak checks (no tokens)
+  smoke.sh                 real CLIs on cheap models, scratch dirs, leak scan
+  mock_agent.py
+  test_robustness.py        failure, retry and phase-gating regressions
+  test_smoke.py             smoke-script success and failure scenarios
+runs/&lt;run-id&gt;/
+  QUESTION.md  run.json  INDEX.md
+  01-research/R-xxxxxxxx/     report.md  prompt.md  artifact.json
+  02-review/V-xxxxxxxx/       review.md
+  03-reassessment/A-xxxxxxxx/ overview.md  reassess_R-….md
+  04-synthesis/S-xxxxxxxx/    synthesis.md
+ledger/
+  ledger.sqlite            runs · tasks · events
+  logs/&lt;run-id&gt;/          raw CLI stdout/stderr, unredacted imports (not anonymized)</pre>
+</section>
+</main>
+
+<footer><div class="wrap">Shared Deep Research harness · this page works offline and has no dependencies · see <code>README.md</code> for the same information as text.</div></footer>
+
+<script>
+(() => {
+"use strict";
+const $ = (s, el = document) => el.querySelector(s);
+const NS = "http://www.w3.org/2000/svg";
+const svgEl = (tag, attrs = {}, parent) => {
+  const e = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+  if (parent) parent.appendChild(e);
+  return e;
+};
+
+/* ------------------------------------------------------------ theme */
+const root = document.documentElement;
+$(".skip-link").addEventListener("click", event => {
+  event.preventDefault();
+  $("#main-content").focus();
+});
+try { const t = localStorage.getItem("dr-theme"); if (t) root.dataset.theme = t; } catch (_) {}
+$("#themeBtn").addEventListener("click", () => {
+  const dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  root.dataset.theme = dark ? "light" : "dark";
+  try { localStorage.setItem("dr-theme", root.dataset.theme); } catch (_) {}
+});
+
+/* ------------------------------------------------------------ routing */
+const VIEWS = ["overview", "flow", "phases", "rubrics", "quickstart", "commands", "config", "anonymity", "files"];
+function route() {
+  const v = VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : "overview";
+  document.querySelectorAll("section.view").forEach(s => s.classList.toggle("active", s.id === "v-" + v));
+  document.querySelectorAll("nav.tabs a").forEach(a => {
+    if (a.getAttribute("href") === "#" + v) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+  });
+  if (v === "flow") render();
+  document.title = (document.querySelector("#v-" + v + " h1")?.textContent || "Guide") + " · Shared Deep Research";
+  window.scrollTo(0, 0);
+}
+addEventListener("hashchange", route);
+
+/* ------------------------------------------------------------ phase explorer */
+document.querySelectorAll("[data-phase]").forEach(button => {
+  button.addEventListener("click", () => {
+    document.querySelectorAll("[data-phase]").forEach(b => b.setAttribute("aria-pressed", String(b === button)));
+    document.querySelectorAll(".phase-panel").forEach(panel => { panel.hidden = panel.id !== "phase-" + button.dataset.phase; });
+  });
+});
+
+/* ------------------------------------------------------------ copy buttons */
+document.querySelectorAll("pre").forEach(pre => {
+  const b = document.createElement("button");
+  b.className = "copy"; b.type = "button"; b.textContent = "Copy";
+  b.addEventListener("click", () => {
+    const txt = [...pre.childNodes].filter(n => n !== b).map(n => n.textContent).join("")
+      .trim();
+    const done = () => { b.textContent = "Copied"; setTimeout(() => (b.textContent = "Copy"), 1200); };
+    if (navigator.clipboard) navigator.clipboard.writeText(txt).then(done, () => (b.textContent = "Select + copy"));
+    else b.textContent = "Select + copy";
+  });
+  pre.appendChild(b);
+});
+
+/* ------------------------------------------------------------ commands */
+const CMDS = [
+  ["dr options", "List each agent's configured model plus the models and thinking levels it can use", "--agent NAME · --json · -v (hidden models, descriptions)"],
+  ["dr config", "Pick a model and thinking level for each agent, interactively or with --set. Comments in config.toml are kept.", "--set NAME.model=ID · --set NAME.effort=LEVEL · --agent · -y · --commit"],
+  ["dr new \"question\"", "Phase 0 (intake): record the question and scope, then commit", "--scope TEXT · --scope-file F · --file F · --import F"],
+  ["dr import RUN FILE…", "Add research done offline or elsewhere as an anonymous R- report. It is reviewed, reassessed and synthesized, but runs no sessions itself. Refused once reassessment has started.", "--label NAME (ledger only) · --no-review · FILE = - for stdin"],
+  ["dr run RUN", "Run or resume phases in order, committing after each session", "--phase research,review · --agents a,b · --allow-partial · --retry-failed"],
+  ["dr status RUN", "Show task progress for each phase", "--blind (hide agent names)"],
+  ["dr reveal RUN", "Show the mapping from artifact to framework, version, model and effort", "--json · --out FILE"],
+  ["dr list", "List runs, with completed counts for each phase", ""],
+  ["tests/offline.sh", "Run the full pipeline with 3 mock agents and 2 imported reports: 23 artifacts, redaction, scrub and leak checks, no tokens", ""],
+  ["tests/smoke.sh [phases]", "Run the real CLIs on cheap models in scratch folders, with no commits and a leak scan at the end", "SMOKE_MODEL_<NAME>=model[:effort]"],
+];
+$("#cmdTable").innerHTML = CMDS.map(([c, d, f]) => `<tr><td><code>${esc(c)}</code></td><td>${esc(d)}</td><td>${f ? `<code>${esc(f)}</code>` : ""}</td></tr>`).join("");
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+
+/* ------------------------------------------------------------ flow model */
+const PHASES = [
+  { key: "intake", dir: "—", title: "Intake", sub: "dr new", sessions: () => 0,
+    desc: "The harness records the question and scope. No model is involved.",
+    reads: "Your question and scope notes", writes: "QUESTION.md, run.json, a runs row in the ledger" },
+  { key: "research", dir: "01-research", title: "Research", sub: "N sessions", sessions: n => n, prefix: "R",
+    desc: "Each agent researches independently. It must break the question into sub-questions, find at least two sources for key claims, actively look for counter-evidence, and label each finding with its type and confidence.",
+    reads: "inputs/question.md", writes: "R-*/report.md (8 fixed sections, cited [S#])" },
+  { key: "review", dir: "02-review", title: "Blind review", sub: "N × reports", sessions: (n, k) => n * (n + k), prefix: "V",
+    desc: "Every agent reviews every report in its own fresh session, one report at a time, including its own report without knowing it. Imported reports are reviewed too, unless they were imported with --no-review. Reviewers verify at least 8 load-bearing claims (or all if fewer), check 3+ key claims independently, check the reasoning and calibration, rule on every finding, and finish with a JSON summary.",
+    reads: "inputs/question.md and one report", writes: "V-*/review.md (11 fixed sections + JSON)" },
+  { key: "reassessment", dir: "03-reassessment", title: "Reassessment", sub: "N sessions", sessions: n => n, prefix: "A",
+    desc: "Each agent reads all the reports and all the reviews. It settles disagreements between reviewers by re-checking sources rather than averaging opinions, rules on each finding, and compares the reports with each other.",
+    reads: "all reports (agent-written and imported), all reviews, and MANIFEST.md (which reviews cover which report)", writes: "A-*/reassess_<R>.md for each report, plus overview.md" },
+  { key: "synthesis", dir: "04-synthesis", title: "Synthesis", sub: "N sessions", sessions: n => n, prefix: "S",
+    desc: "Each agent combines all the reassessments into one cohesive report: findings merged by theme with calibrated confidence, a unified bibliography, the disagreements it resolved, the questions left open, and the claims that were refuted.",
+    reads: "all reassessments (primary), plus the original reports for sources", writes: "S-*/synthesis.md (10 fixed sections + JSON)" },
+];
+const IMPORT = {
+  desc: "Research done offline or in another tool, added with dr import. No session runs for it. The harness redacts and scrubs it, gives it a random R- ID, and from then on it is an ordinary report: reviewed by every agent (unless --no-review), ruled on in every reassessment, and used in synthesis. It never acts as a reviewer, reassessor or synthesizer.",
+  reads: "your file (or stdin)", writes: "R-*/report.md (redacted copy; original kept in ledger/logs/)" };
+const COLORS = ["--a1", "--a2", "--a3", "--a4", "--a5", "--a6"];
+let agents = [
+  { name: "agy", on: true }, { name: "codex", on: true }, { name: "claude", on: true },
+];
+let imports = 0;       // imported (dr import) reports
+let ids = {};          // stable random ids per node key
+let selected = null;   // node key
+let stage = PHASES.length; // phases revealed (play animation)
+let playing = null;
+
+const rid = p => p + "-" + [...crypto.getRandomValues(new Uint8Array(4))].map(b => b.toString(16).padStart(2, "0")).join("");
+const idFor = (key, prefix) => (ids[key] ||= rid(prefix));
+const active = () => agents.filter(a => a.on);
+const colorOf = name => `var(${COLORS[agents.findIndex(a => a.name === name) % COLORS.length]})`;
+
+function buildGraph() {
+  const A = active();
+  const nodes = [], edges = [];
+  const q = { key: "q", phase: 0, label: "QUESTION", agent: null };
+  nodes.push(q);
+  const R = A.map(a => ({ key: "R:" + a.name, phase: 1, agent: a.name, label: idFor("R:" + a.name, "R") }));
+  nodes.push(...R);
+  R.forEach(r => edges.push({ from: q, to: r }));
+  const I = Array.from({ length: imports }, (_, i) => ({ key: "I:" + i, phase: 1, agent: null, imported: true, label: idFor("I:" + i, "R") }));
+  nodes.push(...I);
+  const reviewed = $("#impReview").checked ? R.concat(I) : R;
+  const V = [];
+  reviewed.forEach(r => A.forEach(a => {
+    const v = { key: `V:${a.name}:${r.key}`, phase: 2, agent: a.name, subject: r, label: idFor(`V:${a.name}:${r.key}`, "V") };
+    V.push(v); edges.push({ from: r, to: v });
+  }));
+  nodes.push(...V);
+  const As = A.map(a => ({ key: "A:" + a.name, phase: 3, agent: a.name, label: idFor("A:" + a.name, "A") }));
+  nodes.push(...As);
+  As.forEach(x => {
+    R.concat(I).forEach(r => edges.push({ from: r, to: x, faint: !(r.imported && !$("#impReview").checked) }));
+    V.forEach(v => edges.push({ from: v, to: x }));
+  });
+  const S = A.map(a => ({ key: "S:" + a.name, phase: 4, agent: a.name, label: idFor("S:" + a.name, "S") }));
+  nodes.push(...S);
+  S.forEach(s => { As.forEach(x => edges.push({ from: x, to: s })); });
+  return { nodes, edges, cols: [[q], R.concat(I), V, As, S] };
+}
+
+function render() {
+  const svg = $("#flow");
+  svg.textContent = "";
+  const reveal = $("#reveal").checked;
+  const { nodes, edges, cols } = buildGraph();
+  const n = active().length;
+  const W = 1060, colW = W / 5, nodeW = 132, nodeH = 26, gap = 9, top = 64;
+  const maxRows = Math.max(1, ...cols.map(c => c.length));
+  const H = top + maxRows * (nodeH + gap) + 30;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  // columns
+  PHASES.forEach((p, i) => {
+    const x = i * colW + 8;
+    svgEl("rect", { class: "col-bg" + (playing !== null && stage === i ? " hot" : ""), x, y: 8, width: colW - 16, height: H - 16, rx: 10 }, svg);
+    const t = svgEl("text", { class: "col-title", x: x + 12, y: 30 }, svg); t.textContent = p.title;
+    const s = svgEl("text", { class: "col-sub", x: x + 12, y: 47 }, svg);
+    const ns = p.sessions(n, kReviewed());
+    s.textContent = (p.dir !== "—" ? p.dir + " · " : "") + (i === 0 ? p.sub
+      : i === 1 && imports ? `${ns} + ${imports} imported` : `${ns} session${ns === 1 ? "" : "s"}`);
+  });
+  // positions
+  cols.forEach((col, i) => {
+    const block = col.length * (nodeH + gap) - gap;
+    const y0 = top + (maxRows * (nodeH + gap) - gap - block) / 2;
+    col.forEach((nd, j) => { nd.x = i * colW + (colW - nodeW) / 2; nd.y = y0 + j * (nodeH + gap); });
+  });
+  // edges
+  const gE = svgEl("g", {}, svg);
+  edges.forEach(e => {
+    const x1 = e.from.x + nodeW, y1 = e.from.y + nodeH / 2, x2 = e.to.x, y2 = e.to.y + nodeH / 2, mx = (x1 + x2) / 2;
+    e.el = svgEl("path", { class: "edge" + (e.faint ? " faint" : ""), d: `M${x1} ${y1} C${mx} ${y1},${mx} ${y2},${x2} ${y2}` }, gE);
+    if (e.to.phase > stage) e.el.style.opacity = 0;
+    if (playing !== null && e.to.phase === stage) e.el.classList.add("flowing");
+  });
+  // nodes
+  const gN = svgEl("g", {}, svg);
+  nodes.forEach(nd => {
+    const g = svgEl("g", { class: "node" + (nd.phase > stage ? " pending" : "") + (selected === nd.key ? " sel" : ""), tabindex: 0, role: "button",
+      "aria-label": nodeTitle(nd, reveal) }, gN);
+    const col = nd.imported ? (reveal ? "var(--warn)" : "var(--anon)")
+      : nd.agent && reveal ? colorOf(nd.agent) : (nd.agent ? "var(--anon)" : "var(--accent)");
+    svgEl("rect", { x: nd.x, y: nd.y, width: nodeW, height: nodeH, rx: 6, fill: "var(--surface)", stroke: col,
+      ...(nd.imported ? { "stroke-dasharray": "4 3" } : {}) }, g);
+    svgEl("rect", { x: nd.x, y: nd.y, width: 5, height: nodeH, rx: 2, fill: col, stroke: "none" }, g);
+    const t = svgEl("text", { x: nd.x + 13, y: nd.y + nodeH / 2 + 4, fill: "var(--text)" }, g);
+    const who = nd.agent || (nd.imported ? "import" : "");
+    t.textContent = who ? (reveal ? `${nd.label.slice(0, 6)}… ${who}` : nd.label) : nd.label;
+    nd.el = g;
+    g.addEventListener("mouseenter", () => highlight(nd, nodes, edges));
+    g.addEventListener("mouseleave", () => highlight(selected ? nodes.find(x => x.key === selected) : null, nodes, edges));
+    g.addEventListener("click", () => { selected = selected === nd.key ? null : nd.key; render(); });
+    g.addEventListener("keydown", ev => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); g.dispatchEvent(new Event("click")); } });
+  });
+  if (selected) highlight(nodes.find(x => x.key === selected), nodes, edges);
+  updateCounter(n);
+  showDetail(selected ? nodes.find(x => x.key === selected) : null, edges, reveal);
+  renderPhaseCards(n);
+}
+
+function nodeTitle(nd, reveal) {
+  if (nd.imported) return `Imported research report ${nd.label}` + (reveal ? " (external, no session)" : "");
+  if (!nd.agent) return "Research question";
+  return `${PHASES[nd.phase].title} artifact ${nd.label}` + (reveal ? ` by ${nd.agent}` : "");
+}
+
+function highlight(nd, nodes, edges) {
+  if (!nd) {
+    nodes.forEach(x => x.el.classList.remove("dim"));
+    edges.forEach(e => e.el.classList.remove("hi", "dim"));
+    return;
+  }
+  const keep = new Set([nd.key]);
+  edges.forEach(e => {
+    const on = e.to === nd || e.from === nd;
+    e.el.classList.toggle("hi", on); e.el.classList.toggle("dim", !on);
+    if (on) { keep.add(e.from.key); keep.add(e.to.key); }
+  });
+  nodes.forEach(x => x.el.classList.toggle("dim", !keep.has(x.key)));
+}
+
+function showDetail(nd, edges, reveal) {
+  const box = $("#detail");
+  if (!nd) {
+    box.innerHTML = `<h3>Click a node</h3><p style="margin:0;color:var(--muted)">Each box is one artifact, produced by one independent session. Hover to trace its inputs and outputs. Labels show the anonymous IDs that models and the <code>runs/</code> folder see. Turn on <em>Reveal provenance</em> to see the ledger mapping.</p>`;
+    return;
+  }
+  const p = nd.imported ? { ...PHASES[1], ...IMPORT, title: "Imported report" } : PHASES[nd.phase];
+  const ins = edges.filter(e => e.to === nd).map(e => e.from);
+  const outs = edges.filter(e => e.from === nd).map(e => e.to);
+  const tag = x => x.agent || (x.imported ? "import" : "");
+  const fmt = arr => arr.length ? arr.map(x => `<code>${esc(x.label)}</code>${reveal && tag(x) ? ` <span class="pill">${esc(tag(x))}</span>` : ""}`).join(" ") : "—";
+  let extra = "";
+  if (nd.phase === 2) {
+    extra = `<dt>Reviews</dt><dd><code>${esc(nd.subject.label)}</code>${reveal ? (nd.subject.agent === nd.agent ? ` <span class="pill">self-review (blind)</span>`
+      : nd.subject.imported ? ` <span class="pill">imported report</span>` : "") : ""}</dd>`;
+  }
+  if (nd.imported && !$("#impReview").checked) extra = `<dt>Review</dt><dd>skipped (<code>--no-review</code>). Reassessors still rule on it, without reviews.</dd>`;
+  box.innerHTML = `
+    <h3>${esc(p.title)} · <code>${esc(nd.label)}</code> ${reveal && nd.agent ? `<span class="pill" style="border-color:${colorOf(nd.agent)}">${esc(nd.agent)}</span>` : ""}</h3>
+    <p style="margin:0">${esc(p.desc)}</p>
+    <dl>
+      <dt>Folder</dt><dd>${nd.agent || nd.imported ? `<code>runs/&lt;run&gt;/${esc(p.dir)}/${esc(nd.label)}/</code>` : "<code>runs/&lt;run&gt;/QUESTION.md</code>"}</dd>
+      ${extra}
+      <dt>Reads</dt><dd>${esc(p.reads)}</dd>
+      <dt>Writes</dt><dd>${esc(p.writes)}</dd>
+      <dt>Input artifacts</dt><dd>${fmt(ins)}</dd>
+      <dt>Feeds</dt><dd>${fmt(outs)}</dd>
+      ${nd.agent || nd.imported ? `<dt>Ledger row</dt><dd>${!reveal ? `<span style="color:var(--muted)">hidden. Turn on Reveal provenance</span>`
+        : nd.imported ? `agent <b>import:&lt;label&gt;</b>, framework <b>external</b>, your label as model (source <code>import</code>), source path + sha256, redactions`
+        : `agent <b>${esc(nd.agent)}</b>, framework + version, model (+ source), effort, timings, usage, session ID`}</dd>` : ""}
+    </dl>`;
+}
+
+function renderPhaseCards(n) {
+  $("#phaseCards").innerHTML = PHASES.map((p, i) => `
+    <div class="card" data-i="${i}"><span class="n">${i === 0 ? "0" : p.sessions(n, kReviewed())}</span>
+      <div class="k">${p.dir}</div><b>${p.title}</b>
+      <div style="font-size:13.5px;color:var(--muted);margin-top:4px">${esc(p.desc.split(". ")[0].replace(/\.$/, ""))}.</div></div>`).join("");
+  $("#phaseCards").querySelectorAll(".card").forEach(c => c.addEventListener("click", () => {
+    const i = +c.dataset.i;
+    const { cols } = buildGraph();
+    selected = cols[i][0] ? cols[i][0].key : null;
+    render();
+    $("#flow").scrollIntoView({ behavior: "smooth", block: "center" });
+  }));
+}
+
+function kReviewed() { return $("#impReview").checked ? imports : 0; }
+function updateCounter(n) {
+  const rv = n * (n + kReviewed()), total = n + rv + n + n;
+  $("#counter").innerHTML = `Sessions: <b>${n}</b> + <b>${rv}</b> + <b>${n}</b> + <b>${n}</b> = <b>${total}</b>`
+    + (imports ? ` · ${imports} imported report${imports === 1 ? "" : "s"} (0 sessions)` : "");
+}
+
+/* agents UI */
+function renderChips() {
+  $("#agentChips").innerHTML = agents.map((a, i) => `
+    <span class="chip ${a.on ? "" : "off"}" data-i="${i}" role="checkbox" aria-checked="${a.on}" tabindex="0" title="Toggle">
+      <span class="dot" style="background:${colorOf(a.name)}"></span>${esc(a.name)}
+      ${i >= 3 ? `<span class="x" data-x="${i}" title="Remove">×</span>` : ""}</span>`).join("");
+  $("#agentChips").querySelectorAll(".chip").forEach(c => {
+    const toggle = ev => {
+      const i = +c.dataset.i;
+      if (ev.target.dataset.x !== undefined) { agents.splice(i, 1); }
+      else if (agents[i].on && active().length <= 1) return;
+      else agents[i].on = !agents[i].on;
+      selected = null; renderChips(); render();
+    };
+    c.addEventListener("click", toggle);
+    c.addEventListener("keydown", ev => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); toggle(ev); } });
+  });
+}
+$("#addAgent").addEventListener("submit", ev => {
+  ev.preventDefault();
+  const v = $("#newAgent").value.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "");
+  if (!v || agents.some(a => a.name === v) || agents.length >= 6) return;
+  agents.push({ name: v, on: true }); $("#newAgent").value = "";
+  renderChips(); render();
+});
+$("#reveal").addEventListener("change", render);
+$("#impReview").addEventListener("change", () => { selected = null; render(); });
+const setImports = k => { imports = Math.max(0, Math.min(3, k)); $("#impN").textContent = imports;
+  $("#impMinus").disabled = imports === 0; $("#impPlus").disabled = imports === 3; selected = null; render(); };
+$("#impMinus").addEventListener("click", () => setImports(imports - 1));
+$("#impPlus").addEventListener("click", () => setImports(imports + 1));
+
+/* play */
+$("#playBtn").addEventListener("click", () => {
+  if (playing) { clearInterval(playing); playing = null; stage = PHASES.length; $("#playBtn").textContent = "▶ Play phases"; render(); return; }
+  stage = 0; selected = null;
+  $("#playBtn").textContent = "■ Stop";
+  playing = setInterval(() => {
+    stage++;
+    if (stage >= PHASES.length) { clearInterval(playing); playing = null; stage = PHASES.length; $("#playBtn").textContent = "▶ Play phases"; }
+    render();
+  }, 1600);
+  render();
+});
+$("#resetBtn").addEventListener("click", () => {
+  if (playing) clearInterval(playing);
+  playing = null; stage = PHASES.length; selected = null; ids = {};
+  agents = [{ name: "agy", on: true }, { name: "codex", on: true }, { name: "claude", on: true }];
+  $("#reveal").checked = false; $("#impReview").checked = true; $("#playBtn").textContent = "▶ Play phases";
+  renderChips(); setImports(0);
+});
+
+renderChips();
+$("#impMinus").disabled = true;
+route();
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(console.error);
+}
+</script>
+</body>
+</html>
