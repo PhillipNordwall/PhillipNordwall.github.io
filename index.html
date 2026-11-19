@@ -68,6 +68,7 @@
       let diameter;
       let maxX;
       let maxY;
+      let forceScale = 1;
       let pointer = null;
       let previousTime;
 
@@ -93,7 +94,7 @@
         const dy = second.y - first.y;
         const distance = Math.hypot(dx, dy);
         if (distance > 0) {
-          const attractionStep = attraction * seconds / Math.max(distance, diameter) ** 2;
+          const attractionStep = forceScale * attraction * seconds / Math.max(distance, diameter) ** 2;
           const dvx = attractionStep * dx / distance;
           const dvy = attractionStep * dy / distance;
           first.vx += dvx;
@@ -109,7 +110,7 @@
             const distance = Math.hypot(dx, dy);
             if (distance > 0) {
               // Limit the acceleration within the ball's radius.
-              const repulsionStep = repulsion * seconds / Math.max(distance, diameter / 2) ** 2;
+              const repulsionStep = forceScale * repulsion * seconds / Math.max(distance, diameter / 2) ** 2;
               ball.vx += repulsionStep * dx / distance;
               ball.vy += repulsionStep * dy / distance;
             }
@@ -175,6 +176,15 @@
       render();
 
       window.addEventListener('resize', measure);
+      window.addEventListener('wheel', (event) => {
+        if (event.ctrlKey || event.deltaY === 0) return;
+        forceScale = Math.max(0.01, Math.min(100, forceScale * 1.1 ** -Math.sign(event.deltaY)));
+      }, { passive: true });
+      window.addEventListener('keydown', (event) => {
+        if (event.key === '0' && !event.ctrlKey && !event.metaKey && !event.altKey) {
+          forceScale = 1;
+        }
+      });
       window.addEventListener('pointermove', (event) => {
         if (event.pointerType === 'mouse') {
           pointer = { x: event.clientX, y: event.clientY };
