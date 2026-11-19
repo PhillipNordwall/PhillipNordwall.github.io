@@ -18,7 +18,8 @@
         overflow: hidden;
       }
 
-      #ball {
+      .ball {
+        position: absolute;
         width: min(48px, 30vmin);
         aspect-ratio: 1;
         border-radius: 50%;
@@ -38,8 +39,9 @@
     </style>
   </head>
   <body>
-    <main id="playfield" aria-label="Bouncing ball animation">
-      <div id="ball"></div>
+    <main id="playfield" aria-label="Two bouncing balls">
+      <div class="ball"></div>
+      <div class="ball"></div>
     </main>
     <nav aria-label="Projects">
       <ul>
@@ -49,32 +51,137 @@
     </nav>
     <script>
       const playfield = document.querySelector('#playfield');
-      const ball = document.querySelector('#ball');
-      const startedAt = performance.now();
+      const initialSpeed = 225;
+      const attraction = 48000;
+      const repulsion = 96000;
+      const balls = Array.from(playfield.querySelectorAll('.ball'), (element) => {
+        const direction = Math.random() * 2 * Math.PI;
+        return {
+          element,
+          x: 0,
+          y: 0,
+          vx: initialSpeed * Math.cos(direction),
+          vy: initialSpeed * Math.sin(direction),
+        };
+      });
+      const [first, second] = balls;
+      let diameter;
       let maxX;
       let maxY;
+      let pointer = null;
+      let previousTime;
 
       function measure() {
-        maxX = Math.max(0, playfield.clientWidth - ball.offsetWidth);
-        maxY = Math.max(0, playfield.clientHeight - ball.offsetHeight);
+        diameter = first.element.getBoundingClientRect().width;
+        maxX = Math.max(0, playfield.clientWidth - diameter);
+        maxY = Math.max(0, playfield.clientHeight - diameter);
       }
 
-      function bounce(distance, limit) {
-        if (limit === 0) return 0;
-        const cycle = distance % (2 * limit);
-        return Math.min(cycle, 2 * limit - cycle);
+      function bounceOffWalls(ball) {
+        if (ball.x < 0 || ball.x > maxX) {
+          ball.vx = ball.x < 0 ? Math.abs(ball.vx) : -Math.abs(ball.vx);
+          ball.x = Math.max(0, Math.min(ball.x, maxX));
+        }
+        if (ball.y < 0 || ball.y > maxY) {
+          ball.vy = ball.y < 0 ? Math.abs(ball.vy) : -Math.abs(ball.vy);
+          ball.y = Math.max(0, Math.min(ball.y, maxY));
+        }
+      }
+
+      function advance(seconds) {
+        const dx = second.x - first.x;
+        const dy = second.y - first.y;
+        const distance = Math.hypot(dx, dy);
+        if (distance > 0) {
+          const attractionStep = attraction * seconds / Math.max(distance, diameter) ** 2;
+          const dvx = attractionStep * dx / distance;
+          const dvy = attractionStep * dy / distance;
+          first.vx += dvx;
+          first.vy += dvy;
+          second.vx -= dvx;
+          second.vy -= dvy;
+        }
+
+        for (const ball of balls) {
+          if (pointer) {
+            const dx = ball.x + diameter / 2 - pointer.x;
+            const dy = ball.y + diameter / 2 - pointer.y;
+            const distance = Math.hypot(dx, dy);
+            if (distance > 0) {
+              // Limit the acceleration within the ball's radius.
+              const repulsionStep = repulsion * seconds / Math.max(distance, diameter / 2) ** 2;
+              ball.vx += repulsionStep * dx / distance;
+              ball.vy += repulsionStep * dy / distance;
+            }
+          }
+          ball.x += ball.vx * seconds;
+          ball.y += ball.vy * seconds;
+          bounceOffWalls(ball);
+        }
+
+        collide();
+      }
+
+      function collide() {
+        const dx = second.x - first.x;
+        const dy = second.y - first.y;
+        const distance = Math.hypot(dx, dy);
+        if (distance >= diameter) return;
+
+        const nx = distance > 0 ? dx / distance : 1;
+        const ny = distance > 0 ? dy / distance : 0;
+        const overlap = (diameter - distance) / 2;
+        first.x -= overlap * nx;
+        first.y -= overlap * ny;
+        second.x += overlap * nx;
+        second.y += overlap * ny;
+
+        // Equal masses exchange their velocity components along the contact normal.
+        const closingSpeed = (first.vx - second.vx) * nx + (first.vy - second.vy) * ny;
+        if (closingSpeed > 0) {
+          first.vx -= closingSpeed * nx;
+          first.vy -= closingSpeed * ny;
+          second.vx += closingSpeed * nx;
+          second.vy += closingSpeed * ny;
+        }
+        bounceOffWalls(first);
+        bounceOffWalls(second);
+      }
+
+      function render() {
+        for (const ball of balls) {
+          ball.element.style.transform = `translate(${ball.x}px, ${ball.y}px)`;
+        }
       }
 
       function animate(now) {
-        const seconds = (now - startedAt) / 1000;
-        const x = bounce(maxX / 2 + seconds * 180, maxX);
-        const y = bounce(maxY / 2 + seconds * 135, maxY);
-        ball.style.transform = `translate(${x}px, ${y}px)`;
+        const elapsed = Math.min((now - (previousTime ?? now)) / 1000, 0.05);
+        previousTime = now;
+        const steps = Math.ceil(elapsed * 240);
+        for (let step = 0; step < steps; step++) {
+          advance(elapsed / steps);
+        }
+        render();
         requestAnimationFrame(animate);
       }
 
       measure();
+      first.x = Math.random() * maxX;
+      first.y = Math.random() * maxY;
+      do {
+        second.x = Math.random() * maxX;
+        second.y = Math.random() * maxY;
+      } while (Math.hypot(second.x - first.x, second.y - first.y) < diameter);
+      render();
+
       window.addEventListener('resize', measure);
+      window.addEventListener('pointermove', (event) => {
+        if (event.pointerType === 'mouse') {
+          pointer = { x: event.clientX, y: event.clientY };
+        }
+      });
+      document.documentElement.addEventListener('pointerleave', () => { pointer = null; });
+      window.addEventListener('blur', () => { pointer = null; });
       requestAnimationFrame(animate);
 
       if ('serviceWorker' in navigator) {
