@@ -1,0 +1,1622 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Usage-View — AI Subscription &amp; Quota Dashboard</title>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card: #131b2e;
+      --card-border: #23304d;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --green: #10b981;
+      --yellow: #f59e0b;
+      --red: #ef4444;
+      --purple: #a855f7;
+      --strong: #ffffff;
+      --track: #1e293b;
+      --ov: 255,255,255;
+      --ovd: 0,0,0;
+      color-scheme: dark;
+    }
+    :root[data-theme="light"] {
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --card-border: #cbd5e1;
+      --text: #0f172a;
+      --muted: #475569;
+      --accent: #0369a1;
+      --green: #059669;
+      --yellow: #d97706;
+      --red: #dc2626;
+      --strong: #0f172a;
+      --track: #e2e8f0;
+      --ov: 15,23,42;
+      --ovd: 15,23,42;
+      color-scheme: light;
+    }
+    :root[data-theme="light"] button { color: #fff; }
+    :root[data-theme="light"] button.secondary { color: var(--text); }
+    .banner {
+      max-width: 1320px; margin: 0 auto 16px auto; padding: 8px 14px;
+      border-radius: 8px; font-size: 0.8rem;
+      background: rgba(56,189,248,0.12); border: 1px solid rgba(56,189,248,0.4);
+    }
+    .banner.snapshot { background: rgba(245,158,11,0.15); border-color: rgba(245,158,11,0.5); }
+    .banner.stale { background: rgba(239,68,68,0.12); border-color: rgba(239,68,68,0.4); }
+    .stale-note { color: var(--yellow); font-weight: 600; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, monospace;
+      background: var(--bg);
+      color: var(--text);
+      padding: 24px;
+      line-height: 1.5;
+    }
+    header {
+      max-width: 1320px;
+      margin: 0 auto 20px auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 16px;
+    }
+    h1 { font-size: 1.45rem; letter-spacing: -0.02em; color: var(--strong); }
+    .subtitle { font-size: 0.85rem; color: var(--muted); }
+    .controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    button {
+      background: var(--accent);
+      color: #0f172a;
+      border: none;
+      font-weight: 600;
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.82rem;
+    }
+    button.secondary {
+      background: rgba(var(--ov),0.08);
+      color: var(--text);
+      border: 1px solid var(--card-border);
+    }
+    button:hover { opacity: 0.9; }
+    .hero-banner {
+      max-width: 1320px;
+      margin: 0 auto 20px auto;
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.14), rgba(56, 189, 248, 0.10));
+      border: 1px solid rgba(16, 185, 129, 0.45);
+      border-radius: 12px;
+      padding: 16px 20px;
+    }
+    .hero-title {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #34d399;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .hero-main { font-size: 1.05rem; font-weight: 700; color: var(--strong); margin-bottom: 4px; }
+    .hero-sub { font-size: 0.84rem; color: var(--text); }
+    .best-box {
+      background: rgba(16, 185, 129, 0.10);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 0.8rem;
+    }
+    .grid {
+      max-width: 1320px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 20px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .provider-title { font-size: 1.15rem; font-weight: 700; color: var(--strong); }
+    .tier-badge {
+      display: inline-block;
+      background: rgba(168, 85, 247, 0.18);
+      color: #d8b4fe;
+      border: 1px solid rgba(168, 85, 247, 0.4);
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-top: 4px;
+    }
+    .status-pill {
+      font-size: 0.75rem;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .status-auth { background: rgba(16, 185, 129, 0.18); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+    .status-inst { background: rgba(245, 158, 11, 0.18); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-size: 0.78rem;
+      color: var(--muted);
+      background: rgba(var(--ov),0.03);
+      padding: 8px 10px;
+      border-radius: 6px;
+    }
+    .section-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--accent);
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    /* Collapsible <details> styling */
+    details.collapsible {
+      background: rgba(var(--ov),0.02);
+      border: 1px solid rgba(var(--ov),0.07);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    details.collapsible > summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 9px 12px;
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--accent);
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+      background: rgba(var(--ov),0.025);
+    }
+    details.collapsible > summary::-webkit-details-marker { display: none; }
+    details.collapsible > summary::after {
+      content: "▸ Expand";
+      font-size: 0.7rem;
+      color: var(--muted);
+      font-weight: 500;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+    details.collapsible[open] > summary::after {
+      content: "▾ Collapse";
+      color: var(--accent);
+    }
+    details.collapsible > summary:hover {
+      background: rgba(56, 189, 248, 0.08);
+    }
+    .collapsible-body {
+      padding: 10px 12px;
+      border-top: 1px solid rgba(var(--ov),0.06);
+    }
+    .window-box {
+      background: rgba(var(--ovd),0.25);
+      border: 1px solid rgba(var(--ov),0.06);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 8px;
+    }
+    .window-top {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .bar-track {
+      width: 100%;
+      height: 10px;
+      background: var(--track);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+    .bar-fill { height: 100%; border-radius: 999px; transition: width 0.4s ease; }
+    .window-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.76rem;
+      color: var(--muted);
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .list-item {
+      font-size: 0.8rem;
+      padding: 7px 0;
+      border-bottom: 1px solid rgba(var(--ov),0.05);
+    }
+    .list-item:last-child { border-bottom: none; }
+    .item-sub { font-size: 0.74rem; color: var(--muted); margin-top: 2px; }
+    .pricing-card {
+      background: rgba(var(--ovd),0.22);
+      border: 1px solid rgba(var(--ov),0.06);
+      border-radius: 6px;
+      padding: 9px 10px;
+      margin-bottom: 8px;
+    }
+    .pricing-card:last-child { margin-bottom: 0; }
+    .pricing-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--strong);
+      margin-bottom: 4px;
+    }
+    .pricing-rates {
+      font-size: 0.75rem;
+      color: #38bdf8;
+      margin-bottom: 3px;
+    }
+    .tag {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--accent);
+    }
+    .tag-green { background: rgba(16, 185, 129, 0.18); color: #34d399; }
+    .tag-purple { background: rgba(168, 85, 247, 0.18); color: #d8b4fe; }
+    .tag-yellow { background: rgba(245, 158, 11, 0.18); color: #fbbf24; }
+    .tag-red { background: rgba(239, 68, 68, 0.20); color: #f87171; }
+    .priority-shell {
+      max-width: 1320px;
+      margin: 0 auto 20px auto;
+    }
+    .priority-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .priority-item {
+      background: rgba(var(--ovd),0.28);
+      border: 1px solid rgba(var(--ov),0.08);
+      border-left: 3px solid var(--accent);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 0.8rem;
+    }
+    .priority-item.urgency-immediate { border-left-color: var(--red); }
+    .priority-item.urgency-today { border-left-color: var(--yellow); }
+    .priority-item.urgency-week { border-left-color: var(--accent); }
+    .conserve-box {
+      margin-top: 12px;
+      background: rgba(239, 68, 68, 0.10);
+      border: 1px solid rgba(239, 68, 68, 0.38);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 0.8rem;
+    }
+    .model-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.76rem;
+    }
+    .model-table th, .model-table td {
+      text-align: left;
+      padding: 4px 6px;
+      border-bottom: 1px solid rgba(var(--ov),0.05);
+    }
+    .model-table th { color: var(--muted); font-weight: 600; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>AI Subscription Usage &amp; Quota Monitor</h1>
+      <div class="subtitle" id="last-updated">Data collected: 11/19/2026, 12:35:54 PM • Zero-LLM API &amp; Local Telemetry Mode</div>
+    </div>
+    <div class="controls">
+      <button class="secondary" onclick="toggleAllDetails(true)">⊞ Expand All</button>
+      <button class="secondary" onclick="toggleAllDetails(false)">⊟ Collapse All</button>
+      <button class="secondary" onclick="toggleTheme()" id="theme-btn">☾ Dark</button>
+      <button class="secondary" onclick="saveSnapshot()" id="save-btn">⤓ Save Snapshot</button>
+      <button onclick="refreshData()" id="refresh-btn">↻ Refresh Now</button>
+    </div>
+  </header>
+  <div class="banner" id="status-banner">● Live — data sent by server at 12:35:54 PM; next automatic update in 44s (every 60s).</div>
+  <section id="overall-best-container">
+          <div class="hero-banner">
+            <div class="hero-title">★ Overall Highest-Value Under-Utilized Bucket Across All Subscriptions</div>
+            <div class="hero-main">Google Antigravity (agy) [Google AI Pro ($19.99/mo, G1 Pro)] — Partner 3P (Claude 5.5 / GPT-OSS) (5-Hour Rolling Pool)</div>
+            <div class="hero-sub">
+              <strong style="color:#34d399">100.0% remaining (0.0% used, 20% unspent time-window slack, untouched) • resets in now (resetting)</strong><br>
+              → Run Claude Opus 5.5 (High), Claude Sonnet 5.5, or GPT-OSS 120B tasks in `agy` — 3P partner pool is untouched.
+              
+            </div>
+          </div>
+        </section>
+  <section id="use-it-or-lose-it-container" class="priority-shell">
+          <details class="collapsible" data-sec-id="global-use-it-or-lose-it" open="">
+            <summary>⏳ Use-It-Or-Lose-It Prioritization Queue (6 expiring opportunities, 1 conserve alert)</summary>
+            <div class="collapsible-body">
+              <div class="priority-grid">
+          <div class="priority-item urgency-week">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px">
+              <span><strong style="color:#38bdf8">#1</strong> <strong>[AGY] Partner 3P (Claude 5.5 / GPT-OSS) (5-Hour Rolling Pool)</strong></span>
+              <span><span class="tag">📅 THIS WEEK</span> <span class="tag tag-green">100% left</span></span>
+            </div>
+            <div class="bar-track" style="height:7px;margin-bottom:6px">
+              <div class="bar-fill" style="width:0%; background:var(--green)"></div>
+            </div>
+            <div class="item-sub" style="color:var(--text)">
+              ⏳ Resets in <strong style="color:#fbbf24" data-reset-iso="2026-11-17T23:53:25Z">reset time passed (awaiting fresh data)</strong> (2026-11-17 15:53 PST) • Score: <strong>88.3</strong>
+            </div>
+            <div class="item-sub">→ Run Claude Opus 5.5 (High), Claude Sonnet 5.5, or GPT-OSS 120B tasks in `agy` — 3P partner pool is untouched.</div>
+            
+          </div>
+        
+          <div class="priority-item urgency-week">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px">
+              <span><strong style="color:#38bdf8">#2</strong> <strong>[CLAUDE] 7-Day Weekly Limit (All Models)</strong></span>
+              <span><span class="tag">📅 THIS WEEK</span> <span class="tag tag-green">98% left</span></span>
+            </div>
+            <div class="bar-track" style="height:7px;margin-bottom:6px">
+              <div class="bar-fill" style="width:2%; background:var(--green)"></div>
+            </div>
+            <div class="item-sub" style="color:var(--text)">
+              ⏳ Resets in <strong style="color:#fbbf24" data-reset-iso="2026-11-25T21:59:59.974493+00:00">6d 1h 23m</strong> (2026-11-25 13:59 PST) • Score: <strong>83.8</strong>
+            </div>
+            <div class="item-sub">→ High weekly Claude Code allowance remaining across Opus &amp; Sonnet before the weekly reset.</div>
+            <div class="item-sub" style="color:#d8b4fe">★ Also 3/3 free `/ultrareview` cloud sandbox runs unused ($5–$20 value/run)</div>
+          </div>
+        
+          <div class="priority-item urgency-week">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px">
+              <span><strong style="color:#38bdf8">#3</strong> <strong>[CODEX] Secondary Rolling Window (7-Day Weekly Cap)</strong></span>
+              <span><span class="tag">📅 THIS WEEK</span> <span class="tag tag-green">90% left</span></span>
+            </div>
+            <div class="bar-track" style="height:7px;margin-bottom:6px">
+              <div class="bar-fill" style="width:10%; background:var(--green)"></div>
+            </div>
+            <div class="item-sub" style="color:var(--text)">
+              ⏳ Resets in <strong style="color:#fbbf24" data-reset-iso="2026-11-25T16:51:22+00:00">5d 20h 15m</strong> (2026-11-25 08:51 PST) • Score: <strong>76</strong>
+            </div>
+            <div class="item-sub">→ Large share of weekly Codex frontier token cap is unspent — run multi-file refactors or cloud agent tasks.</div>
+            <div class="item-sub" style="color:#d8b4fe">★ Also 25/25 monthly Deep Research tasks unused</div>
+          </div>
+        
+          <div class="priority-item urgency-today">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px">
+              <span><strong style="color:#38bdf8">#4</strong> <strong>[CLAUDE] 5-Hour Rolling Session Limit</strong></span>
+              <span><span class="tag tag-yellow">⚡ &lt;24h TODAY</span> <span class="tag tag-green">84% left</span></span>
+            </div>
+            <div class="bar-track" style="height:7px;margin-bottom:6px">
+              <div class="bar-fill" style="width:16%; background:var(--green)"></div>
+            </div>
+            <div class="item-sub" style="color:var(--text)">
+              ⏳ Resets in <strong style="color:#fbbf24" data-reset-iso="2026-11-20T01:19:59.974475+00:00">4h 43m 49s</strong> (2026-11-19 17:19 PST) • Score: <strong>75.6</strong>
+            </div>
+            <div class="item-sub">→ 5-hour session window has abundant room for interactive Claude Code work.</div>
+            <div class="item-sub" style="color:#d8b4fe">★ Also 3/3 free `/ultrareview` cloud sandbox runs unused ($5–$20 value/run)</div>
+          </div>
+        
+          <div class="priority-item urgency-week">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px">
+              <span><strong style="color:#38bdf8">#5</strong> <strong>[AGY] Gemini Flash / Hydrogen (5-Hour Rolling Pool)</strong></span>
+              <span><span class="tag">📅 THIS WEEK</span> <span class="tag tag-green">70% left</span></span>
+            </div>
+            <div class="bar-track" style="height:7px;margin-bottom:6px">
+              <div class="bar-fill" style="width:30%; background:var(--green)"></div>
+            </div>
+            <div class="item-sub" style="color:var(--text)">
+              ⏳ Resets in <strong style="color:#fbbf24" data-reset-iso="2026-11-17T20:15:08Z">reset time passed (awaiting fresh data)</strong> (2026-11-17 12:15 PST) • Score: <strong>46.2</strong>
+            </div>
+            <div class="item-sub">→ Use Gemini 4 Hydrogen (XHigh/High) or Gemini 3.8 Flash for fast parallel subagents before the 5h reset.</div>
+            
+          </div>
+        
+          <div class="priority-item urgency-today">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px">
+              <span><strong style="color:#38bdf8">#6</strong> <strong>[CODEX] Primary Rolling Window (5-Hour Session)</strong></span>
+              <span><span class="tag tag-yellow">⚡ &lt;24h TODAY</span> <span class="tag tag-green">43% left</span></span>
+            </div>
+            <div class="bar-track" style="height:7px;margin-bottom:6px">
+              <div class="bar-fill" style="width:57%; background:var(--green)"></div>
+            </div>
+            <div class="item-sub" style="color:var(--text)">
+              ⏳ Resets in <strong style="color:#fbbf24" data-reset-iso="2026-11-20T01:14:23+00:00">4h 38m 13s</strong> (2026-11-19 17:14 PST) • Score: <strong>39.5</strong>
+            </div>
+            <div class="item-sub">→ 5-hour Codex primary session window is wide open for coding or review tasks.</div>
+            <div class="item-sub" style="color:#d8b4fe">★ Also 25/25 monthly Deep Research tasks unused</div>
+          </div>
+        </div>
+              
+          <div class="conserve-box">
+            <div style="color:#f87171;font-weight:700;margin-bottom:4px">🛑 Buckets to Conserve / Avoid Burning Right Now</div>
+            
+              <div class="item-sub" style="color:#fecaca">
+                • <strong>[AGY] Gemini Pro / Argon (Weekly Pool)</strong> — Only <strong>17% left</strong> (83% used, pace 1.6x), resets in <strong data-reset-iso="2026-11-23T05:18:05Z">3d 8h 41m</strong>.
+              </div>
+            
+          </div>
+        
+            </div>
+          </details>
+        </section>
+  <main class="grid" id="providers-grid">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="provider-title">Google Antigravity (agy)</div>
+                <span class="tier-badge">Subscription: Google AI Pro ($19.99/mo, G1 Pro)</span>
+                <div class="item-sub" style="margin-top:6px">5-hour rolling Flash/Hydrogen &amp; Partner 3P (Claude 5.5 / GPT-OSS) pools, 7-day weekly Gemini 4 Argon/Pro pool, unlimited completions, and Google One AI Credit overages (enabled).</div>
+              </div>
+              <span class="status-pill status-auth">● Authenticated</span>
+            </div>
+            <div class="meta-row">
+              <span><strong>Source:</strong> local_transcript_snapshot</span>
+              <span><strong>Cheapest Model:</strong> <code>gemini-3.8-flash-low</code></span>
+              
+              <span><strong>Local Transcript API Equiv:</strong> <strong style="color:#34d399">~$29.41 USD</strong></span>
+            </div>
+            
+          <div class="best-box">
+            <div style="color:#34d399;font-weight:700;margin-bottom:2px">★ Best Under-Utilized Bucket: Partner 3P (Claude 5.5 / GPT-OSS) (5-Hour Rolling Pool)</div>
+            <div>100.0% remaining (0.0% used, 20% unspent time-window slack, untouched) • resets in now (resetting)</div>
+            <div class="item-sub" style="color:var(--text)">→ Run Claude Opus 5.5 (High), Claude Sonnet 5.5, or GPT-OSS 120B tasks in `agy` — 3P partner pool is untouched.</div>
+            
+          </div>
+        
+            <div>
+              <div class="section-title">Quota Windows &amp; Reset Timers</div>
+              
+          <div class="window-box">
+            <div class="window-top">
+              <span>Gemini Flash / Hydrogen (5-Hour Rolling Pool)</span>
+              <span style="color:var(--green)">30.0% used (70.0% left)</span>
+            </div>
+            <div class="bar-track">
+              <div class="bar-fill" style="width:30%; background:var(--green)"></div>
+            </div>
+            <div class="window-meta">
+              <span>⏳ Resets in <strong style="color:#38bdf8" data-reset-iso="2026-11-17T20:15:08Z">reset time passed (awaiting fresh data)</strong> (2026-11-17 12:15 PST)</span>
+              
+            </div>
+            <div class="item-sub">Shared pool across Gemini Flash / Hydrogen models</div>
+          </div>
+        
+          <div class="window-box">
+            <div class="window-top">
+              <span>Gemini Pro / Argon (Weekly Pool)</span>
+              <span style="color:var(--yellow)">83.0% used (17.0% left)</span>
+            </div>
+            <div class="bar-track">
+              <div class="bar-fill" style="width:83%; background:var(--yellow)"></div>
+            </div>
+            <div class="window-meta">
+              <span>⏳ Resets in <strong style="color:#38bdf8" data-reset-iso="2026-11-23T05:18:05Z">3d 8h 41m</strong> (2026-11-22 21:18 PST)</span>
+              <span>Pace: <strong>1.6x</strong></span>
+            </div>
+            <div class="item-sub">Shared pool across Gemini Pro / Argon models</div>
+          </div>
+        
+          <div class="window-box">
+            <div class="window-top">
+              <span>Partner 3P (Claude 5.5 / GPT-OSS) (5-Hour Rolling Pool)</span>
+              <span style="color:var(--green)">0.0% used (100.0% left)</span>
+            </div>
+            <div class="bar-track">
+              <div class="bar-fill" style="width:0%; background:var(--green)"></div>
+            </div>
+            <div class="window-meta">
+              <span>⏳ Resets in <strong style="color:#38bdf8" data-reset-iso="2026-11-17T23:53:25Z">reset time passed (awaiting fresh data)</strong> (2026-11-17 15:53 PST)</span>
+              
+            </div>
+            <div class="item-sub">Shared pool across Partner 3P (Claude 5.5 / GPT-OSS) models</div>
+          </div>
+        
+            </div>
+            
+          <details class="collapsible" data-sec-id="agy-pricing" open="">
+            <summary>External API Costs (vs. Monthly Plan) &amp; Value/Perf (7 tiers)</summary>
+            <div class="collapsible-body">
+              
+                <div class="pricing-card">
+                  <div class="pricing-top">
+                    <span>Gemini 4 Argon &amp; Orchestrator</span>
+                    <span>
+                      <span class="tag tag-purple">S+ Frontier Reasoning &amp; Orchestration</span>
+                      <span class="tag tag-green">★★★★★ Max Capability</span>
+                    </span>
+                  </div>
+                  <div class="pricing-rates">
+                    <strong>API Cost:</strong> $2.00 in / $0.2 cache / $12.00 out per 1M • <span class="tag tag-yellow">100-Turn Session: ~$8.50–$18.00</span>
+                  </div>
+                  <div class="item-sub" style="color:var(--text)"><strong>Plan Burn:</strong> 1.0x–1.5x Weekly Pool (~10–25 G1 AI Credits/turn overage)</div>
+                  <div class="item-sub">1M+ context flagship reasoning &amp; multi-agent orchestration. Over 200k context doubles API rate ($4/$18 per 1M); included in $19.99/mo G1 Pro weekly pool.</div>
+                </div>
+              
+                <div class="pricing-card">
+                  <div class="pricing-top">
+                    <span>Gemini 4 Hydrogen (Low → XHigh)</span>
+                    <span>
+                      <span class="tag tag-purple">S High-Speed Frontier Coding</span>
+                      <span class="tag tag-green">★★★★★ Best Speed/IQ ROI</span>
+                    </span>
+                  </div>
+                  <div class="pricing-rates">
+                    <strong>API Cost:</strong> $1.50 in / $0.075 cache / $7.50 out per 1M • <span class="tag tag-yellow">100-Turn Session: ~$4.20–$9.00</span>
+                  </div>
+                  <div class="item-sub" style="color:var(--text)"><strong>Plan Burn:</strong> 0.25x–0.50x 5h Pool (~3–8 G1 AI Credits/turn overage)</div>
+                  <div class="item-sub">High-velocity coding &amp; deep reasoning (up to XHigh effort) drawing from the 5-hour rolling pool instead of the 7-day weekly Argon cap.</div>
+                </div>
+              
+                <div class="pricing-card">
+                  <div class="pricing-top">
+                    <span>Gemini 3.8 Flash (Low → High)</span>
+                    <span>
+                      <span class="tag tag-purple">A+ Workhorse Agentic &amp; Subagent Fan-Out</span>
+                      <span class="tag tag-green">★★★★★ Best Budget Workhorse</span>
+                    </span>
+                  </div>
+                  <div class="pricing-rates">
+                    <strong>API Cost:</strong> $0.75 in / $0.075 cache / $3.75 out per 1M • <span class="tag tag-yellow">100-Turn Session: ~$2.10–$4.50</span>
+                  </div>
+                  <div class="item-sub" style="color:var(--text)"><strong>Plan Burn:</strong> 0.15x–0.25x 5h Pool (~1–3 G1 AI Credits/turn overage)</div>
+                  <div class="item-sub">Promotional API rate ($0.75/$3.75 per 1M; standard $1.50/$7.50). Ideal for parallel subagents, repository scans, and rapid edits.</div>
+                </div>
+              
+                <div class="pricing-card">
+                  <div class="pricing-top">
+                    <span>Gemini 3.1 / 3.5 Flash-Lite</span>
+                    <span>
+                      <span class="tag tag-purple">B Ultra-Cheap High-Throughput Utility</span>
+                      <span class="tag tag-green">★★★★☆ Lowest Burn</span>
+                    </span>
+                  </div>
+                  <div class="pricing-rates">
+                    <strong>API Cost:</strong> $0.25 in / $0.03 cache / $1.50 out per 1M • <span class="tag tag-yellow">100-Turn Session: ~$0.80–$1.50</span>
+                  </div>
+                  <div class="item-sub" style="color:var(--text)"><strong>Plan Burn:</strong> 0.10x 5h Pool (&lt;1 G1 AI Credit/turn overage)</div>
+                  <div class="item-sub">Ultra-low-cost model for simple classification, summarization, and background hooks.</div>
+                </div>
+              
+                <div class="pricing-card">
+                  <div class="pricing-top">
+                    <span>Claude Opus 5.5 [Partner 3P]</span>
+                    <span>
+                      <span class="tag tag-purple">S+ Frontier Deep Reasoning &amp; Refactoring</span>
+                      <span class="tag tag-green">★★★★★ Highest API Value</span>
+                    </span>
+                  </div>
+                  <div class="pricing-rates">
+                    <strong>API Cost:</strong> $4.00 in / $0.2 cache / $20.00 out per 1M • <span class="tag tag-yellow">100-Turn Session: ~$14.00–$32.00</span>
+                  </div>
+                  <div class="item-sub" style="color:var(--text)"><strong>Plan Burn:</strong> 2.0x Partner 3P 5h Pool (~20–40 G1 AI Credits/turn overage)</div>
+                  <div class="item-sub">Highest external API cost ($4/$20 per 1M). Using your included AGY 3P 5-hour pool saves ~$15–$30 in API fees per heavy coding session.</div>
+                </div>
+              
+                <div class="pricing-card">
+                  <div class="pricing-top">
+                    <span>Claude Sonnet 5.5 [Partner 3P]</span>
+                    <span>
+                      <span class="tag tag-purple">S Daily-Driver Coding &amp; Tool Use</span>
+                      <span class="tag tag-green">★★★★★ High 3P Value</span>
+                    </span>
+                  </div>
+                  <div class="pricing-rates">
+                    <strong>API Cost:</strong> $2.00 in / $0.1 cache / $10.00 out per 1M • <span class="tag tag-yellow">100-Turn Session: ~$7.00–$16.00</span>
+                  </div>
+                  <div class="item-sub" style="color:var(--text)"><strong>Plan Burn:</strong> 1.0x Partner 3P 5h Pool (~10–20 G1 AI Credits/turn overage)</div>
+                  <div class="item-sub">Fast, accurate surgical code editing &amp; debugging routed through Antigravity's 3P pool.</div>
+                </div>
+              
+                <div class="pricing-card">
+                  <div class="pricing-top">
+                    <span>GPT-OSS 120B (Medium) [Partner 3P]</span>
+                    <span>
+                      <span class="tag tag-purple">A Open-Weights Reasoning Alternative</span>
+                      <span class="tag tag-green">★★★★☆ Cross-Check Model</span>
+                    </span>
+                  </div>
+                  <div class="pricing-rates">
+                    <strong>API Cost:</strong> $0.60 in / $0.15 cache / $2.40 out per 1M • <span class="tag tag-yellow">100-Turn Session: ~$1.80–$3.50</span>
+                  </div>
+                  <div class="item-sub" style="color:var(--text)"><strong>Plan Burn:</strong> 0.35x Partner 3P 5h Pool</div>
+                  <div class="item-sub">Independent non-Gemini/non-Claude reasoning perspective inside the 3P 5h pool.</div>
+                </div>
+              
+            </div>
+          </details>
+        
+            
+          <details class="collapsible" data-sec-id="agy-models" open="">
+            <summary>Per-Model / Family Quota Breakdown (18)</summary>
+            <div class="collapsible-body">
+              <table class="model-table">
+                <thead><tr><th>Model / Family</th><th>Window</th><th>Remaining</th><th>Resets In</th></tr></thead>
+                <tbody>
+                  
+                    <tr>
+                      <td>Claude Opus 5.5 (High)</td>
+                      <td><span class="tag">5h</span></td>
+                      <td style="color:var(--green);font-weight:600">100.0%</td>
+                      <td data-reset-iso="2026-11-17T23:53:25Z">reset time passed (awaiting fresh data)</td>
+                    </tr>
+                  
+                    <tr>
+                      <td>Claude Opus 5.5 (Low)</td>
+                      <td><span class="tag">5h</span></td>
+                      <td style="color:var(--green);font-weight:600">100.0%</td>
+                      <td data-reset-iso="2026-11-17T23:53:25Z">reset time passed (awaiting fresh data)</td>
+                    </tr>
+                  
+                    <tr>
+                      <td>Claude Opus 5.5 (Medium)</td>
+                      <td><span class="tag">5h</span></td>
+                      <td style="color:var(--green);font-weight:600">100.0%</td>
+                      <td data-reset-iso="2026-11-17T23:53:25Z">reset time passed (awaiting fresh data)</td>
+                    </tr>
+                  
+                    <tr>
+                      <td>Claude Sonnet 5.5 (High)</td>
+                      <td><span class="tag">5h</span></td>
+                      <td style="color:var(--green);font-weight:600">100.0%</td>
+                      <td data-reset-iso="2026-11-17T23:53:25Z">reset time passed (awaiting fresh data)</td>
+                    </tr>
+                  
+                    <tr>
+                      <td>Claude Sonnet 5.5 (Low)</td>
+                      <td><span class="tag">5h</span></td>
+                      <td style="color:var(--green);font-weight:600">100.0%</td>
+                      <td data-reset-iso="2026-11-17T23:53:25Z">reset time passed (awaiting fresh data)</td>
+                    </tr>
+                  
+                    <tr>
+                      <td>Claude Sonnet 5.5 (Medium)</td>
+                      <td><span class="tag">5h</span></td>
+                      <td style="color:var(--green);font-weight:600">100.0%</td>
+                      <td data-reset-iso="2026-11-17T23:53:25Z">reset time passed (awaiting fresh data)</td>
+                    </tr>
+                  
+                    <tr>
+                      <td>Gemini 3.8 Flash (High)</td>
+                      <td><span class="tag">5h</span></td>
+                      <td style="color:var(--green);font-weight:600">70.0%</td>
+                      <td data-reset-iso="2026-11-17T20:15:08Z">reset time passed (awaiting fresh data)</td>
+                    </tr>
+                  
+                    <tr>
+                      <td>Gemini 3.8 Flash (Low)</td>
+                      <td><span class="tag">5h</span></td>
+                      <td style="color:var(--green);font-weight:600">70.0%</td>
+                      <td data-reset-iso="2026-11-17T20:15:08Z">reset time passed (awaiting fresh data)</td>
+                    </tr>
+                  
+                    <tr>
+                      <td>Gemini 3.8 Flash (Medium)</td>
+                      <td><span class="tag">5h</span></td>
+                      <td style="color:var(--green);font-weight:600">70.0%</td>
+                      <td data-reset-iso="2026-11-17T20:15:08Z">reset time passed (awaiting fresh data)</td>
+                    </tr>
+                  
+                    <tr>
+                      <td>Gemini 4 Argon (High)</td>
+                      <td><span class="tag">weekly</span></td>
+                      <td style="color:var(--yellow);font-weight:600">17.0%</td>
+                      <td data-reset-iso="2026-11-23T05:18:05Z">3d 8h 41m</td>
+                    </tr>
+                  
+                    <tr>
+                      <td>Gemini 4 Argon (Low)</td>
+                      <td><span class="tag">weekly</span></td>
+                      <td style="color:var(--yellow);font-weight:600">17.0%</td>
+                      <td data-reset-iso="2026-11-23T05:18:05Z">3d 8h 41m</td>
+                    </tr>
+                  
+                    <tr>
+                      <td>Gemini 4 Argon (Medium)</td>
+                      <td><span class="tag">weekly</span></td>
+                      <td style="color:var(--yellow);font-weight:600">17.0%</td>
+                      <td data-reset-iso="2026-11-23T05:18:05Z">3d 8h 41m</td>
+                    </tr>
+                  
+                    <tr>
+                      <td>Gemini 4 Hydrogen (High)</td>
+                      <td><span class="tag">5h</span></td>
+                      <td style="color:var(--green);font-weight:600">70.0%</td>
+                      <td data-reset-iso="2026-11-17T20:15:08Z">reset time passed (awaiting fresh data)</td>
+                    </tr>
+                  
+                    <tr>
+                      <td>Gemini 4 Hydrogen (Low)</td>
+                      <td><span class="tag">5h</span></td>
+                      <td style="color:var(--green);font-weight:600">70.0%</td>
+                      <td data-reset-iso="2026-11-17T20:15:08Z">reset time passed (awaiting fresh data)</td>
+                    </tr>
+                  
+                    <tr>
+                      <td>Gemini 4 Hydrogen (Medium)</td>
+                      <td><span class="tag">5h</span></td>
+                      <td style="color:var(--green);font-weight:600">70.0%</td>
+                      <td data-reset-iso="2026-11-17T20:15:08Z">reset time passed (awaiting fresh data)</td>
+                    </tr>
+                  
+                    <tr>
+                      <td>Gemini 4 Hydrogen (XHigh)</td>
+                      <td><span class="tag">5h</span></td>
+                      <td style="color:var(--green);font-weight:600">70.0%</td>
+                      <td data-reset-iso="2026-11-17T20:15:08Z">reset time passed (awaiting fresh data)</td>
+                    </tr>
+                  
+                    <tr>
+                      <td>Orchestrator (Argon)</td>
+                      <td><span class="tag">weekly</span></td>
+                      <td style="color:var(--yellow);font-weight:600">17.0%</td>
+                      <td data-reset-iso="2026-11-23T05:18:05Z">3d 8h 41m</td>
+                    </tr>
+                  
+                    <tr>
+                      <td>GPT-OSS 120B (Medium)</td>
+                      <td><span class="tag">5h</span></td>
+                      <td style="color:var(--green);font-weight:600">100.0%</td>
+                      <td data-reset-iso="2026-11-17T23:53:25Z">reset time passed (awaiting fresh data)</td>
+                    </tr>
+                  
+                </tbody>
+              </table>
+            </div>
+          </details>
+        
+            
+          <details class="collapsible" data-sec-id="agy-credits" open="">
+            <summary>Credits, Overages &amp; Monthly Caps (1)</summary>
+            <div class="collapsible-body">
+              
+                <div class="list-item">
+                  <div><strong>Google One AI Credits (useG1Credits / useAiCredits)</strong> <span class="tag tag-green">Enabled</span>
+                  
+                  
+                  </div>
+                  <div class="item-sub">Overages enabled (will dip into AI credits when quota hits 0%)</div>
+                </div>
+              
+            </div>
+          </details>
+        
+            
+          <details class="collapsible" data-sec-id="agy-features" open="">
+            <summary>Special Limits (Ultrareview, Deep Research, Code Review)</summary>
+            <div class="collapsible-body">
+              
+                <div class="list-item">
+                  <div><strong>Shared Token Pools (Flash/Hydrogen 5h + Argon/Pro Weekly + 3P 5h)</strong> <span class="tag">5-hour rolling &amp; 7-day weekly</span></div>
+                  <div class="item-sub">Gemini Flash &amp; Hydrogen share a 5-hour rolling pool; Gemini 4 Argon &amp; Orchestrator share a 7-day weekly pool; Claude 5.5 &amp; GPT-OSS 120B share a 5-hour partner pool.</div>
+                </div>
+              
+                <div class="list-item">
+                  <div><strong>Tab &amp; Command Completions</strong> <span class="tag">continuous</span></div>
+                  <div class="item-sub">Unlimited inline tab completions and command completions on all plans.</div>
+                </div>
+              
+            </div>
+          </details>
+        
+            
+          <details class="collapsible" data-sec-id="agy-discounts" open="">
+            <summary>Free / Discounted Periods &amp; Multipliers (1)</summary>
+            <div class="collapsible-body">
+              
+                <div class="list-item">
+                  <div><strong>Cost-Weighted Shared Pool (Flash / Low-Effort Discount)</strong> <span class="tag tag-green">ACTIVE NOW</span> • 0.1x–0.25x pool burn weight</div>
+                  <div class="item-sub">Using `gemini-3.8-flash-low` or `gemini-3.1-flash-lite-preview` consumes significantly less of the shared 5-hour pool than Pro/Argon or 3P Opus models.</div>
+                </div>
+              
+            </div>
+          </details>
+        
+          </div>
+        
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="provider-title">Anthropic Claude (claude)</div>
+                <span class="tier-badge">Subscription: Claude Pro ($20/mo, claude_pro) [default_claude_ai]</span>
+                <div class="item-sub" style="margin-top:6px">1x baseline 5-hour rolling session + 7-day weekly unified pool (Opus/Sonnet/Haiku), 3 free /ultrareview runs.</div>
+              </div>
+              <span class="status-pill status-auth">● Authenticated</span>
+            </div>
+            <div class="meta-row">
+              <span><strong>Source:</strong> live_api (file:.credentials.json)</span>
+              <span><strong>Cheapest Model:</strong> <code>claude-haiku-5-5</code></span>
+              
+              
+            </div>
+            
+          <div class="best-box">
+            <div style="color:#34d399;font-weight:700;margin-bottom:2px">★ Best Under-Utilized Bucket: 7-Day Weekly Limit (All Models)</div>
+            <div>98.0% remaining (2.0% used, 11% unspent time-window slack, pace 0.15x) • resets in 6d 1h 24m</div>
+            <div class="item-sub" style="color:var(--text)">→ High weekly Claude Code allowance remaining across Opus &amp; Sonnet before the weekly reset.</div>
+            <div class="item-sub" style="color:#d8b4fe">★ Also 3/3 free `/ultrareview` cloud sandbox runs unused ($5–$20 value/run)</div>
+          </div>
+        
+            <div>
+              <div class="section-title">Quota Windows &amp; Reset Timers</div>
+              
+          <div class="window-box">
+            <div class="window-top">
+              <span>5-Hour Rolling Session Limit</span>
+              <span style="color:var(--green)">16.0% used (84.0% left)</span>
+            </div>
+            <div class="bar-track">
+              <div class="bar-fill" style="width:16%; background:var(--green)"></div>
+            </div>
+            <div class="window-meta">
+              <span>⏳ Resets in <strong style="color:#38bdf8" data-reset-iso="2026-11-20T01:19:59.974475+00:00">4h 43m 49s</strong> (2026-11-19 17:19 PST)</span>
+              <span>Pace: <strong>3.02x</strong></span>
+            </div>
+            <div class="item-sub">Starts on first prompt; shared across Claude Code, Web, Desktop &amp; Mobile</div>
+          </div>
+        
+          <div class="window-box">
+            <div class="window-top">
+              <span>7-Day Weekly Limit (All Models)</span>
+              <span style="color:var(--green)">2.0% used (98.0% left)</span>
+            </div>
+            <div class="bar-track">
+              <div class="bar-fill" style="width:2%; background:var(--green)"></div>
+            </div>
+            <div class="window-meta">
+              <span>⏳ Resets in <strong style="color:#38bdf8" data-reset-iso="2026-11-25T21:59:59.974493+00:00">6d 1h 23m</strong> (2026-11-25 13:59 PST)</span>
+              <span>Pace: <strong>0.15x</strong></span>
+            </div>
+            
+          </div>
+        
+            </div>
+            
+          <details class="collapsible" data-sec-id="claude-pricing" open="">
+            <summary>External API Costs (vs. Monthly Plan) &amp; Value/Perf (4 tiers)</summary>
+            <div class="collapsible-body">
+              
+                <div class="pricing-card">
+                  <div class="pricing-top">
+                    <span>Claude Opus 5.5</span>
+                    <span>
+                      <span class="tag tag-purple">S+ Frontier Architecture, Security &amp; Deep Debugging</span>
+                      <span class="tag tag-green">★★★★★ Max Capability</span>
+                    </span>
+                  </div>
+                  <div class="pricing-rates">
+                    <strong>API Cost:</strong> $4.00 in / $0.2 cache / $20.00 out per 1M • <span class="tag tag-yellow">100-Turn Session: ~$14.00–$32.00</span>
+                  </div>
+                  <div class="item-sub" style="color:var(--text)"><strong>Plan Burn:</strong> ~2.0x–2.5x Unified 5h &amp; 7d Pool (or $4/$20 per 1M on Extra Usage)</div>
+                  <div class="item-sub">Highest reasoning depth for complex refactors &amp; architecture. Just 1–2 heavy Opus sessions exceed the $20/mo Pro subscription cost in API terms.</div>
+                </div>
+              
+                <div class="pricing-card">
+                  <div class="pricing-top">
+                    <span>Claude Sonnet 5.5</span>
+                    <span>
+                      <span class="tag tag-purple">S Primary Software Engineering &amp; Multi-File Editing</span>
+                      <span class="tag tag-green">★★★★★ Best Coding Sweet Spot</span>
+                    </span>
+                  </div>
+                  <div class="pricing-rates">
+                    <strong>API Cost:</strong> $2.00 in / $0.1 cache / $10.00 out per 1M • <span class="tag tag-yellow">100-Turn Session: ~$7.00–$16.00</span>
+                  </div>
+                  <div class="item-sub" style="color:var(--text)"><strong>Plan Burn:</strong> 1.0x Baseline Unified 5h &amp; 7d Pool (or $2/$10 per 1M on Extra Usage)</div>
+                  <div class="item-sub">Default workhorse in Claude Code; 95% of Opus coding performance at 50% of the API and quota cost, with 95% discount on cache reads ($0.10/1M).</div>
+                </div>
+              
+                <div class="pricing-card">
+                  <div class="pricing-top">
+                    <span>Claude Haiku 5.5</span>
+                    <span>
+                      <span class="tag tag-purple">A Ultra-Fast Subagent, Search &amp; CLI Automation</span>
+                      <span class="tag tag-green">★★★★★ 20x–40x Cheaper than Opus</span>
+                    </span>
+                  </div>
+                  <div class="pricing-rates">
+                    <strong>API Cost:</strong> $0.10 in / $0.01 cache / $0.50 out per 1M • <span class="tag tag-yellow">100-Turn Session: ~$0.40–$1.80</span>
+                  </div>
+                  <div class="item-sub" style="color:var(--text)"><strong>Plan Burn:</strong> ~0.10x–0.20x Unified Pool ($0.10/$0.50 &lt;=100k, $0.50/$2.50 &gt;100k)</div>
+                  <div class="item-sub">Blazing fast and 40x cheaper than Opus for &lt;=100k context. Best for `claude --model claude-haiku-5-5 -p`, subagent searches, and log parsing.</div>
+                </div>
+              
+                <div class="pricing-card">
+                  <div class="pricing-top">
+                    <span>Claude `/ultrareview` (Multi-Agent Cloud Sandbox)</span>
+                    <span>
+                      <span class="tag tag-purple">S+ Parallel Multi-Agent Security &amp; Logic Audit</span>
+                      <span class="tag tag-green">★★★★★ Up to $60 Bundled Trial Value</span>
+                    </span>
+                  </div>
+                  <div class="pricing-rates">
+                    <strong>API Cost:</strong> $4.00 in / $0.2 cache / $20.00 out per 1M • <span class="tag tag-yellow">100-Turn Session: $5.00–$20.00 / run</span>
+                  </div>
+                  <div class="item-sub" style="color:var(--text)"><strong>Plan Burn:</strong> 3 Free Trial Runs on Pro/Max, then $5–$20/run from Extra Usage</div>
+                  <div class="item-sub">Spins up parallel cloud reviewers to audit logic, security, and edge cases across your branch.</div>
+                </div>
+              
+            </div>
+          </details>
+        
+            
+            
+          <details class="collapsible" data-sec-id="claude-credits" open="">
+            <summary>Credits, Overages &amp; Monthly Caps (1)</summary>
+            <div class="collapsible-body">
+              
+                <div class="list-item">
+                  <div><strong>Claude Monthly Extra Usage / Overages</strong> <span class="tag ">Disabled</span>
+                   • Balance: <strong>-35.7 USD</strong>
+                   • Cap: <strong>5 USD</strong>
+                  </div>
+                  <div class="item-sub">Monthly overage cap when 5-hour or 7-day subscription limits hit 100%</div>
+                </div>
+              
+            </div>
+          </details>
+        
+            
+          <details class="collapsible" data-sec-id="claude-features" open="">
+            <summary>Special Limits (Ultrareview, Deep Research, Code Review)</summary>
+            <div class="collapsible-body">
+              
+                <div class="list-item">
+                  <div><strong>Claude Code `/ultrareview` (Multi-Agent Cloud Sandbox Review)</strong> <span class="tag">trial + per-run cloud compute</span></div>
+                  <div class="item-sub">0 local `/ultrareview` run(s) detected in logs (~3 of 3 included Pro/Max trial runs remaining; subsequent runs cost $5–$20 or draw from Extra Usage).</div>
+                </div>
+              
+                <div class="list-item">
+                  <div><strong>5-Hour Session Lockout Exemption (Ultra Tier)</strong> <span class="tag">5-hour rolling vs. 7-day weekly</span></div>
+                  <div class="item-sub">Pro ($20) &amp; Max ($100) enforce both 5-hour rolling and 7-day weekly limits; verified Ultra ($200) removes the 5-hour rolling session cap.</div>
+                </div>
+              
+            </div>
+          </details>
+        
+            
+          <details class="collapsible" data-sec-id="claude-discounts" open="">
+            <summary>Free / Discounted Periods &amp; Multipliers (2)</summary>
+            <div class="collapsible-body">
+              
+                <div class="list-item">
+                  <div><strong>Off-Peak Promotional Window (2x 5-Hour Capacity / 0.5x Burn)</strong> <span class="tag ">Evenings/Nights (20:00–08:00) &amp; Weekends</span> • 0.5x burn rate (2x effective 5h limit)</div>
+                  <div class="item-sub">Current local status: Peak weekday hours (Thursday 12:35 PST). During promotional off-peak periods, 5-hour session consumption counts at 0.5x.</div>
+                </div>
+              
+                <div class="list-item">
+                  <div><strong>Haiku Model Family Cost Multiplier</strong> <span class="tag tag-green">ACTIVE NOW</span> • ~0.1x–0.2x vs. Opus / ~0.3x vs. Sonnet</div>
+                  <div class="item-sub">Using `--model claude-haiku-5-5` (or `haiku`) for subagents and lightweight queries preserves 5h and 7d pools.</div>
+                </div>
+              
+            </div>
+          </details>
+        
+          </div>
+        
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="provider-title">OpenAI Codex (codex)</div>
+                <span class="tier-badge">Subscription: ChatGPT Plus ($20/mo)</span>
+                <div class="item-sub" style="margin-top:6px">5-hour rolling primary window (~10–15% of weekly budget) + 7-day weekly cap, Expanded Deep Research (~25/mo, 30d rolling), automated Code Review quota + 100 Usage Credits balance.</div>
+              </div>
+              <span class="status-pill status-auth">● Authenticated</span>
+            </div>
+            <div class="meta-row">
+              <span><strong>Source:</strong> live_api (file:auth.json)</span>
+              <span><strong>Cheapest Model:</strong> <code>gpt-5-mini</code></span>
+              <span><strong>Account:</strong> [redacted]</span>
+              
+            </div>
+            
+          <div class="best-box">
+            <div style="color:#34d399;font-weight:700;margin-bottom:2px">★ Best Under-Utilized Bucket: Secondary Rolling Window (7-Day Weekly Cap)</div>
+            <div>90.0% remaining (10.0% used, 6% unspent time-window slack, pace 0.61x) • resets in 5d 20h 15m</div>
+            <div class="item-sub" style="color:var(--text)">→ Large share of weekly Codex frontier token cap is unspent — run multi-file refactors or cloud agent tasks.</div>
+            <div class="item-sub" style="color:#d8b4fe">★ Also 25/25 monthly Deep Research tasks unused</div>
+          </div>
+        
+            <div>
+              <div class="section-title">Quota Windows &amp; Reset Timers</div>
+              
+          <div class="window-box">
+            <div class="window-top">
+              <span>Primary Rolling Window (5-Hour Session)</span>
+              <span style="color:var(--green)">57.0% used (43.0% left)</span>
+            </div>
+            <div class="bar-track">
+              <div class="bar-fill" style="width:57%; background:var(--green)"></div>
+            </div>
+            <div class="window-meta">
+              <span>⏳ Resets in <strong style="color:#38bdf8" data-reset-iso="2026-11-20T01:14:23+00:00">4h 38m 13s</strong> (2026-11-19 17:14 PST)</span>
+              <span>Pace: <strong>7.95x</strong></span>
+            </div>
+            
+          </div>
+        
+          <div class="window-box">
+            <div class="window-top">
+              <span>Secondary Rolling Window (7-Day Weekly Cap)</span>
+              <span style="color:var(--green)">10.0% used (90.0% left)</span>
+            </div>
+            <div class="bar-track">
+              <div class="bar-fill" style="width:10%; background:var(--green)"></div>
+            </div>
+            <div class="window-meta">
+              <span>⏳ Resets in <strong style="color:#38bdf8" data-reset-iso="2026-11-25T16:51:22+00:00">5d 20h 15m</strong> (2026-11-25 08:51 PST)</span>
+              <span>Pace: <strong>0.61x</strong></span>
+            </div>
+            
+          </div>
+        
+            </div>
+            
+          <details class="collapsible" data-sec-id="codex-pricing" open="">
+            <summary>External API Costs (vs. Monthly Plan) &amp; Value/Perf (5 tiers)</summary>
+            <div class="collapsible-body">
+              
+                <div class="pricing-card">
+                  <div class="pricing-top">
+                    <span>GPT-5.4 / GPT-5 (Codex Frontier)</span>
+                    <span>
+                      <span class="tag tag-purple">S+ Flagship Full-Repo Coding &amp; Cloud Agent</span>
+                      <span class="tag tag-green">★★★★★ High Subscription ROI</span>
+                    </span>
+                  </div>
+                  <div class="pricing-rates">
+                    <strong>API Cost:</strong> $2.50 in / $0.25 cache / $15.00 out per 1M • <span class="tag tag-yellow">100-Turn Session: ~$8.00–$18.00</span>
+                  </div>
+                  <div class="item-sub" style="color:var(--text)"><strong>Plan Burn:</strong> 1.0x Standard 5h &amp; 7d Codex Pool</div>
+                  <div class="item-sub">Primary frontier coding model ($1.25–$2.50 in / $10–$15 out per 1M on API). High API output cost makes using your Plus/Pro weekly pool extremely valuable.</div>
+                </div>
+              
+                <div class="pricing-card">
+                  <div class="pricing-top">
+                    <span>OpenAI o3 (Deep Reasoning)</span>
+                    <span>
+                      <span class="tag tag-purple">S+ Deep Algorithmic, Math &amp; Root-Cause Reasoning</span>
+                      <span class="tag tag-green">★★★★★ Max Reasoning Depth</span>
+                    </span>
+                  </div>
+                  <div class="pricing-rates">
+                    <strong>API Cost:</strong> $2.00 in / $0.5 cache / $8.00 out per 1M • <span class="tag tag-yellow">100-Turn Session: ~$7.50–$20.00</span>
+                  </div>
+                  <div class="item-sub" style="color:var(--text)"><strong>Plan Burn:</strong> 1.0x–1.5x Standard Pool (scales with reasoning depth)</div>
+                  <div class="item-sub">Internal thinking tokens are billed at $8.00/1M on API; best for gnarly concurrency bugs, architecture proofs, and complex diffs.</div>
+                </div>
+              
+                <div class="pricing-card">
+                  <div class="pricing-top">
+                    <span>Codex Mini (`codex-mini-latest`) &amp; `o4-mini`</span>
+                    <span>
+                      <span class="tag tag-purple">A+ Fast Terminal &amp; Iterative Patching</span>
+                      <span class="tag tag-green">★★★★☆ Fast &amp; Responsive</span>
+                    </span>
+                  </div>
+                  <div class="pricing-rates">
+                    <strong>API Cost:</strong> $1.50 in / $0.375 cache / $6.00 out per 1M • <span class="tag tag-yellow">100-Turn Session: ~$3.50–$6.50</span>
+                  </div>
+                  <div class="item-sub" style="color:var(--text)"><strong>Plan Burn:</strong> ~0.35x–0.50x Standard Pool</div>
+                  <div class="item-sub">Fine-tuned for terminal tool execution and rapid test-fix loops (`o4-mini` is $1.10 in / $0.28 cache / $4.40 out per 1M).</div>
+                </div>
+              
+                <div class="pricing-card">
+                  <div class="pricing-top">
+                    <span>GPT-5 Mini (`gpt-5-mini` / `gpt-5.4-mini`)</span>
+                    <span>
+                      <span class="tag tag-purple">A High-Efficiency Subtasks &amp; Quick Edits</span>
+                      <span class="tag tag-green">★★★★★ Best Quota Stretcher</span>
+                    </span>
+                  </div>
+                  <div class="pricing-rates">
+                    <strong>API Cost:</strong> $0.50 in / $0.05 cache / $2.50 out per 1M • <span class="tag tag-yellow">100-Turn Session: ~$1.20–$3.00</span>
+                  </div>
+                  <div class="item-sub" style="color:var(--text)"><strong>Plan Burn:</strong> ~0.25x–0.30x Standard Pool (~3.3x more turns per 5h window)</div>
+                  <div class="item-sub">Consumes only ~30% of standard model quota in Codex CLI; ideal when conserving your 5-hour window (which is 10–15% of weekly budget on Plus).</div>
+                </div>
+              
+                <div class="pricing-card">
+                  <div class="pricing-top">
+                    <span>OpenAI Deep Research (Multi-Step Synthesis)</span>
+                    <span>
+                      <span class="tag tag-purple">S+ Autonomous Multi-Source Web &amp; Code Research</span>
+                      <span class="tag tag-green">★★★★★ $50–$150+/mo Bundled Value</span>
+                    </span>
+                  </div>
+                  <div class="pricing-rates">
+                    <strong>API Cost:</strong> $2.00 in / $0.5 cache / $8.00 out per 1M • <span class="tag tag-yellow">100-Turn Session: $2.00–$8.00 / report (~50 credits)</span>
+                  </div>
+                  <div class="item-sub" style="color:var(--text)"><strong>Plan Burn:</strong> 1 Task from 30d Rolling Pool (~25/mo Plus, ~250/mo Pro)</div>
+                  <div class="item-sub">Executes dozens of autonomous search + reasoning turns per report; using all 25 Plus runs/mo equals ~$50–$150+ in raw API + search tool costs.</div>
+                </div>
+              
+            </div>
+          </details>
+        
+            
+            
+          <details class="collapsible" data-sec-id="codex-credits" open="">
+            <summary>Credits, Overages &amp; Monthly Caps (2)</summary>
+            <div class="collapsible-body">
+              
+                <div class="list-item">
+                  <div><strong>OpenAI / ChatGPT Usage Credits</strong> <span class="tag tag-green">Enabled</span>
+                   • Balance: <strong>100 credits</strong>
+                  
+                  </div>
+                  <div class="item-sub">Available to extend weekly allowance or run cloud tasks</div>
+                </div>
+              
+                <div class="list-item">
+                  <div><strong>Workspace Monthly Spend Control</strong> <span class="tag tag-green">Enabled</span>
+                  
+                  
+                  </div>
+                  <div class="item-sub">Active workspace spend cap</div>
+                </div>
+              
+            </div>
+          </details>
+        
+            
+          <details class="collapsible" data-sec-id="codex-features" open="">
+            <summary>Special Limits (Ultrareview, Deep Research, Code Review)</summary>
+            <div class="collapsible-body">
+              
+                <div class="list-item">
+                  <div><strong>OpenAI Deep Research (Expanded (~25/mo))</strong> <span class="tag">30-day rolling window from first task</span></div>
+                  <div class="item-sub">0 local Deep Research run(s) in last 30d. Refreshes on a personal 30-day rolling cycle from your first task (or ~50 credits/task on Business).</div>
+                </div>
+              
+                <div class="list-item">
+                  <div><strong>Codex Cloud &amp; GitHub Code Review (`code_review_rate_limit`)</strong> <span class="tag">5-hour &amp; weekly rolling</span></div>
+                  <div class="item-sub">Dedicated rate-limit bucket tracked via `code_review_rate_limit` in WHAM usage API.</div>
+                </div>
+              
+            </div>
+          </details>
+        
+            
+          <details class="collapsible" data-sec-id="codex-discounts" open="">
+            <summary>Free / Discounted Periods &amp; Multipliers (1)</summary>
+            <div class="collapsible-body">
+              
+                <div class="list-item">
+                  <div><strong>Mini Model Quota Discount (`gpt-5-mini` / `codex-mini`)</strong> <span class="tag tag-green">ACTIVE NOW</span> • ~0.25x–0.30x standard token burn</div>
+                  <div class="item-sub">Running `codex exec -m gpt-5-mini` consumes ~30% of standard frontier model quota and preserves both the 5-hour window (10–15% of weekly budget) and 7-day cap.</div>
+                </div>
+              
+            </div>
+          </details>
+        
+          </div>
+        </main>
+
+  <script id="snapshot-data" type="application/json">{"report":{"generated_at":"2026-11-19T20:35:54.136259+00:00","overall_best_bucket":{"provider_id":"agy","provider_name":"Google Antigravity (agy)","plan_tier":"Google AI Pro ($19.99/mo, G1 Pro)","window_id":"bucket:Partner 3P (Claude 5.5 / GPT-OSS):5h","bucket_name":"Partner 3P (Claude 5.5 / GPT-OSS) (5-Hour Rolling Pool)","family":"Partner 3P (Claude 5.5 / GPT-OSS)","period_type":"5h","remaining_percent":100,"used_percent":0,"unspent_slack_percent":20,"reset_countdown":"now (resetting)","reset_local":"2026-11-17 15:53 PST","pacing_ratio":null,"value_score":88.3,"reason":"100.0% remaining (0.0% used, 20% unspent time-window slack, untouched) • resets in now (resetting)","recommendation":"Run Claude Opus 5.5 (High), Claude Sonnet 5.5, or GPT-OSS 120B tasks in `agy` — 3P partner pool is untouched.","bonus_feature_note":null,"resets_at":"2026-11-17T23:53:25Z","urgency_tier":"week"},"use_it_or_lose_it_queue":[{"provider_id":"agy","provider_name":"Google Antigravity (agy)","plan_tier":"Google AI Pro ($19.99/mo, G1 Pro)","window_id":"bucket:Partner 3P (Claude 5.5 / GPT-OSS):5h","bucket_name":"Partner 3P (Claude 5.5 / GPT-OSS) (5-Hour Rolling Pool)","family":"Partner 3P (Claude 5.5 / GPT-OSS)","period_type":"5h","remaining_percent":100,"used_percent":0,"unspent_slack_percent":20,"reset_countdown":"now (resetting)","reset_local":"2026-11-17 15:53 PST","pacing_ratio":null,"value_score":88.3,"reason":"100.0% remaining (0.0% used, 20% unspent time-window slack, untouched) • resets in now (resetting)","recommendation":"Run Claude Opus 5.5 (High), Claude Sonnet 5.5, or GPT-OSS 120B tasks in `agy` — 3P partner pool is untouched.","bonus_feature_note":null,"resets_at":"2026-11-17T23:53:25Z","urgency_tier":"week"},{"provider_id":"claude","provider_name":"Anthropic Claude (claude)","plan_tier":"Claude Pro ($20/mo, claude_pro) [default_claude_ai]","window_id":"seven_day","bucket_name":"7-Day Weekly Limit (All Models)","family":"All Models","period_type":"weekly","remaining_percent":98,"used_percent":2,"unspent_slack_percent":11.4,"reset_countdown":"6d 1h 24m","reset_local":"2026-11-25 13:59 PST","pacing_ratio":0.15,"value_score":83.8,"reason":"98.0% remaining (2.0% used, 11% unspent time-window slack, pace 0.15x) • resets in 6d 1h 24m","recommendation":"High weekly Claude Code allowance remaining across Opus & Sonnet before the weekly reset.","bonus_feature_note":"Also 3/3 free `/ultrareview` cloud sandbox runs unused ($5–$20 value/run)","resets_at":"2026-11-25T21:59:59.974493+00:00","urgency_tier":"week"},{"provider_id":"codex","provider_name":"OpenAI Codex (codex)","plan_tier":"ChatGPT Plus ($20/mo)","window_id":"secondary_window","bucket_name":"Secondary Rolling Window (7-Day Weekly Cap)","family":"Codex & ChatGPT Shared Pool","period_type":"weekly","remaining_percent":90,"used_percent":10,"unspent_slack_percent":6.5,"reset_countdown":"5d 20h 15m","reset_local":"2026-11-25 08:51 PST","pacing_ratio":0.61,"value_score":76,"reason":"90.0% remaining (10.0% used, 6% unspent time-window slack, pace 0.61x) • resets in 5d 20h 15m","recommendation":"Large share of weekly Codex frontier token cap is unspent — run multi-file refactors or cloud agent tasks.","bonus_feature_note":"Also 25/25 monthly Deep Research tasks unused","resets_at":"2026-11-25T16:51:22+00:00","urgency_tier":"week"},{"provider_id":"claude","provider_name":"Anthropic Claude (claude)","plan_tier":"Claude Pro ($20/mo, claude_pro) [default_claude_ai]","window_id":"five_hour","bucket_name":"5-Hour Rolling Session Limit","family":"All Models (Unified Pool)","period_type":"5h","remaining_percent":84,"used_percent":16,"unspent_slack_percent":0,"reset_countdown":"4h 44m","reset_local":"2026-11-19 17:19 PST","pacing_ratio":3.02,"value_score":75.6,"reason":"84.0% remaining (16.0% used, 0% unspent time-window slack, pace 3.02x) • resets in 4h 44m","recommendation":"5-hour session window has abundant room for interactive Claude Code work.","bonus_feature_note":"Also 3/3 free `/ultrareview` cloud sandbox runs unused ($5–$20 value/run)","resets_at":"2026-11-20T01:19:59.974475+00:00","urgency_tier":"today"},{"provider_id":"agy","provider_name":"Google Antigravity (agy)","plan_tier":"Google AI Pro ($19.99/mo, G1 Pro)","window_id":"bucket:Gemini Flash / Hydrogen:5h","bucket_name":"Gemini Flash / Hydrogen (5-Hour Rolling Pool)","family":"Gemini Flash / Hydrogen","period_type":"5h","remaining_percent":70,"used_percent":30,"unspent_slack_percent":0,"reset_countdown":"now (resetting)","reset_local":"2026-11-17 12:15 PST","pacing_ratio":null,"value_score":46.2,"reason":"70.0% remaining (30.0% used, 0% unspent time-window slack, untouched) • resets in now (resetting)","recommendation":"Use Gemini 4 Hydrogen (XHigh/High) or Gemini 3.8 Flash for fast parallel subagents before the 5h reset.","bonus_feature_note":null,"resets_at":"2026-11-17T20:15:08Z","urgency_tier":"week"},{"provider_id":"codex","provider_name":"OpenAI Codex (codex)","plan_tier":"ChatGPT Plus ($20/mo)","window_id":"primary_window","bucket_name":"Primary Rolling Window (5-Hour Session)","family":"Codex & ChatGPT Shared Pool","period_type":"5h","remaining_percent":43,"used_percent":57,"unspent_slack_percent":0,"reset_countdown":"4h 38m","reset_local":"2026-11-19 17:14 PST","pacing_ratio":7.95,"value_score":39.5,"reason":"43.0% remaining (57.0% used, 0% unspent time-window slack, pace 7.95x) • resets in 4h 38m","recommendation":"5-hour Codex primary session window is wide open for coding or review tasks.","bonus_feature_note":"Also 25/25 monthly Deep Research tasks unused","resets_at":"2026-11-20T01:14:23+00:00","urgency_tier":"today"}],"conserve_buckets":[{"provider_id":"agy","provider_name":"Google Antigravity (agy)","plan_tier":"Google AI Pro ($19.99/mo, G1 Pro)","window_id":"bucket:Gemini Pro / Argon:weekly","bucket_name":"Gemini Pro / Argon (Weekly Pool)","family":"Gemini Pro / Argon","period_type":"weekly","remaining_percent":17,"used_percent":83,"unspent_slack_percent":0,"reset_countdown":"3d 8h 42m","reset_local":"2026-11-22 21:18 PST","pacing_ratio":1.6,"value_score":12.6,"reason":"17.0% remaining (83.0% used, 0% unspent time-window slack, pace 1.60x) • resets in 3d 8h 42m","recommendation":"Use Gemini 4 Argon (High/Medium) or Orchestrator for deep architectural work.","bonus_feature_note":null,"resets_at":"2026-11-23T05:18:05Z","urgency_tier":"week"}],"providers":[{"provider_id":"agy","display_name":"Google Antigravity (agy)","installed":true,"authenticated":true,"plan_tier":"Google AI Pro ($19.99/mo, G1 Pro)","subscription_details":"5-hour rolling Flash/Hydrogen & Partner 3P (Claude 5.5 / GPT-OSS) pools, 7-day weekly Gemini 4 Argon/Pro pool, unlimited completions, and Google One AI Credit overages (enabled).","account_email":null,"organization":null,"source":"local_transcript_snapshot","cheapest_model":"gemini-3.8-flash-low","windows":[{"id":"bucket:Gemini Flash / Hydrogen:5h","name":"Gemini Flash / Hydrogen (5-Hour Rolling Pool)","period_type":"5h","used_percent":30,"remaining_percent":70,"window_seconds":18000,"resets_at":"2026-11-17T20:15:08Z","family":"Gemini Flash / Hydrogen","remaining_amount":null,"disabled":false,"notes":"Shared pool across Gemini Flash / Hydrogen models","seconds_until_reset":-174046.136259,"reset_countdown":"now (resetting)","reset_local":"2026-11-17 12:15 PST","elapsed_percent":null,"pacing_ratio":null},{"id":"bucket:Gemini Pro / Argon:weekly","name":"Gemini Pro / Argon (Weekly Pool)","period_type":"weekly","used_percent":83,"remaining_percent":17,"window_seconds":604800,"resets_at":"2026-11-23T05:18:05Z","family":"Gemini Pro / Argon","remaining_amount":null,"disabled":false,"notes":"Shared pool across Gemini Pro / Argon models","seconds_until_reset":290530.863741,"reset_countdown":"3d 8h 42m","reset_local":"2026-11-22 21:18 PST","elapsed_percent":51.96,"pacing_ratio":1.6},{"id":"bucket:Partner 3P (Claude 5.5 / GPT-OSS):5h","name":"Partner 3P (Claude 5.5 / GPT-OSS) (5-Hour Rolling Pool)","period_type":"5h","used_percent":0,"remaining_percent":100,"window_seconds":18000,"resets_at":"2026-11-17T23:53:25Z","family":"Partner 3P (Claude 5.5 / GPT-OSS)","remaining_amount":null,"disabled":false,"notes":"Shared pool across Partner 3P (Claude 5.5 / GPT-OSS) models","seconds_until_reset":-160949.136259,"reset_countdown":"now (resetting)","reset_local":"2026-11-17 15:53 PST","elapsed_percent":null,"pacing_ratio":null}],"model_quotas":[{"id":"model:claude-opus-5-5-high","name":"Claude Opus 5.5 (High)","period_type":"5h","used_percent":0,"remaining_percent":100,"window_seconds":18000,"resets_at":"2026-11-17T23:53:25Z","family":"Partner 3P (Claude 5.5 / GPT-OSS)","remaining_amount":null,"disabled":false,"notes":null,"seconds_until_reset":-160949.136259,"reset_countdown":"now (resetting)","reset_local":"2026-11-17 15:53 PST","elapsed_percent":null,"pacing_ratio":null},{"id":"model:claude-opus-5-5-low","name":"Claude Opus 5.5 (Low)","period_type":"5h","used_percent":0,"remaining_percent":100,"window_seconds":18000,"resets_at":"2026-11-17T23:53:25Z","family":"Partner 3P (Claude 5.5 / GPT-OSS)","remaining_amount":null,"disabled":false,"notes":null,"seconds_until_reset":-160949.136259,"reset_countdown":"now (resetting)","reset_local":"2026-11-17 15:53 PST","elapsed_percent":null,"pacing_ratio":null},{"id":"model:claude-opus-5-5-medium","name":"Claude Opus 5.5 (Medium)","period_type":"5h","used_percent":0,"remaining_percent":100,"window_seconds":18000,"resets_at":"2026-11-17T23:53:25Z","family":"Partner 3P (Claude 5.5 / GPT-OSS)","remaining_amount":null,"disabled":false,"notes":null,"seconds_until_reset":-160949.136259,"reset_countdown":"now (resetting)","reset_local":"2026-11-17 15:53 PST","elapsed_percent":null,"pacing_ratio":null},{"id":"model:claude-sonnet-5-5-high","name":"Claude Sonnet 5.5 (High)","period_type":"5h","used_percent":0,"remaining_percent":100,"window_seconds":18000,"resets_at":"2026-11-17T23:53:25Z","family":"Partner 3P (Claude 5.5 / GPT-OSS)","remaining_amount":null,"disabled":false,"notes":null,"seconds_until_reset":-160949.136259,"reset_countdown":"now (resetting)","reset_local":"2026-11-17 15:53 PST","elapsed_percent":null,"pacing_ratio":null},{"id":"model:claude-sonnet-5-5-low","name":"Claude Sonnet 5.5 (Low)","period_type":"5h","used_percent":0,"remaining_percent":100,"window_seconds":18000,"resets_at":"2026-11-17T23:53:25Z","family":"Partner 3P (Claude 5.5 / GPT-OSS)","remaining_amount":null,"disabled":false,"notes":null,"seconds_until_reset":-160949.136259,"reset_countdown":"now (resetting)","reset_local":"2026-11-17 15:53 PST","elapsed_percent":null,"pacing_ratio":null},{"id":"model:claude-sonnet-5-5-medium","name":"Claude Sonnet 5.5 (Medium)","period_type":"5h","used_percent":0,"remaining_percent":100,"window_seconds":18000,"resets_at":"2026-11-17T23:53:25Z","family":"Partner 3P (Claude 5.5 / GPT-OSS)","remaining_amount":null,"disabled":false,"notes":null,"seconds_until_reset":-160949.136259,"reset_countdown":"now (resetting)","reset_local":"2026-11-17 15:53 PST","elapsed_percent":null,"pacing_ratio":null},{"id":"model:gemini-3.8-flash-high","name":"Gemini 3.8 Flash (High)","period_type":"5h","used_percent":30,"remaining_percent":70,"window_seconds":18000,"resets_at":"2026-11-17T20:15:08Z","family":"Gemini Flash / Hydrogen","remaining_amount":null,"disabled":false,"notes":null,"seconds_until_reset":-174046.136259,"reset_countdown":"now (resetting)","reset_local":"2026-11-17 12:15 PST","elapsed_percent":null,"pacing_ratio":null},{"id":"model:gemini-3.8-flash-low","name":"Gemini 3.8 Flash (Low)","period_type":"5h","used_percent":30,"remaining_percent":70,"window_seconds":18000,"resets_at":"2026-11-17T20:15:08Z","family":"Gemini Flash / Hydrogen","remaining_amount":null,"disabled":false,"notes":null,"seconds_until_reset":-174046.136259,"reset_countdown":"now (resetting)","reset_local":"2026-11-17 12:15 PST","elapsed_percent":null,"pacing_ratio":null},{"id":"model:gemini-3.8-flash-medium","name":"Gemini 3.8 Flash (Medium)","period_type":"5h","used_percent":30,"remaining_percent":70,"window_seconds":18000,"resets_at":"2026-11-17T20:15:08Z","family":"Gemini Flash / Hydrogen","remaining_amount":null,"disabled":false,"notes":null,"seconds_until_reset":-174046.136259,"reset_countdown":"now (resetting)","reset_local":"2026-11-17 12:15 PST","elapsed_percent":null,"pacing_ratio":null},{"id":"model:gemini-4-argon-high","name":"Gemini 4 Argon (High)","period_type":"weekly","used_percent":83,"remaining_percent":17,"window_seconds":604800,"resets_at":"2026-11-23T05:18:05Z","family":"Gemini Pro / Argon","remaining_amount":null,"disabled":false,"notes":null,"seconds_until_reset":290530.863741,"reset_countdown":"3d 8h 42m","reset_local":"2026-11-22 21:18 PST","elapsed_percent":51.96,"pacing_ratio":1.6},{"id":"model:gemini-4-argon-low","name":"Gemini 4 Argon (Low)","period_type":"weekly","used_percent":83,"remaining_percent":17,"window_seconds":604800,"resets_at":"2026-11-23T05:18:05Z","family":"Gemini Pro / Argon","remaining_amount":null,"disabled":false,"notes":null,"seconds_until_reset":290530.863741,"reset_countdown":"3d 8h 42m","reset_local":"2026-11-22 21:18 PST","elapsed_percent":51.96,"pacing_ratio":1.6},{"id":"model:gemini-4-argon-medium","name":"Gemini 4 Argon (Medium)","period_type":"weekly","used_percent":83,"remaining_percent":17,"window_seconds":604800,"resets_at":"2026-11-23T05:18:05Z","family":"Gemini Pro / Argon","remaining_amount":null,"disabled":false,"notes":null,"seconds_until_reset":290530.863741,"reset_countdown":"3d 8h 42m","reset_local":"2026-11-22 21:18 PST","elapsed_percent":51.96,"pacing_ratio":1.6},{"id":"model:gemini-4-hydrogen-high","name":"Gemini 4 Hydrogen (High)","period_type":"5h","used_percent":30,"remaining_percent":70,"window_seconds":18000,"resets_at":"2026-11-17T20:15:08Z","family":"Gemini Flash / Hydrogen","remaining_amount":null,"disabled":false,"notes":null,"seconds_until_reset":-174046.136259,"reset_countdown":"now (resetting)","reset_local":"2026-11-17 12:15 PST","elapsed_percent":null,"pacing_ratio":null},{"id":"model:gemini-4-hydrogen-low","name":"Gemini 4 Hydrogen (Low)","period_type":"5h","used_percent":30,"remaining_percent":70,"window_seconds":18000,"resets_at":"2026-11-17T20:15:08Z","family":"Gemini Flash / Hydrogen","remaining_amount":null,"disabled":false,"notes":null,"seconds_until_reset":-174046.136259,"reset_countdown":"now (resetting)","reset_local":"2026-11-17 12:15 PST","elapsed_percent":null,"pacing_ratio":null},{"id":"model:gemini-4-hydrogen-medium","name":"Gemini 4 Hydrogen (Medium)","period_type":"5h","used_percent":30,"remaining_percent":70,"window_seconds":18000,"resets_at":"2026-11-17T20:15:08Z","family":"Gemini Flash / Hydrogen","remaining_amount":null,"disabled":false,"notes":null,"seconds_until_reset":-174046.136259,"reset_countdown":"now (resetting)","reset_local":"2026-11-17 12:15 PST","elapsed_percent":null,"pacing_ratio":null},{"id":"model:gemini-4-hydrogen-xhigh","name":"Gemini 4 Hydrogen (XHigh)","period_type":"5h","used_percent":30,"remaining_percent":70,"window_seconds":18000,"resets_at":"2026-11-17T20:15:08Z","family":"Gemini Flash / Hydrogen","remaining_amount":null,"disabled":false,"notes":null,"seconds_until_reset":-174046.136259,"reset_countdown":"now (resetting)","reset_local":"2026-11-17 12:15 PST","elapsed_percent":null,"pacing_ratio":null},{"id":"model:gemini-pro-orchestrator-g1-pro","name":"Orchestrator (Argon)","period_type":"weekly","used_percent":83,"remaining_percent":17,"window_seconds":604800,"resets_at":"2026-11-23T05:18:05Z","family":"Gemini Pro / Argon","remaining_amount":null,"disabled":false,"notes":null,"seconds_until_reset":290530.863741,"reset_countdown":"3d 8h 42m","reset_local":"2026-11-22 21:18 PST","elapsed_percent":51.96,"pacing_ratio":1.6},{"id":"model:gpt-oss-120b-medium","name":"GPT-OSS 120B (Medium)","period_type":"5h","used_percent":0,"remaining_percent":100,"window_seconds":18000,"resets_at":"2026-11-17T23:53:25Z","family":"Partner 3P (Claude 5.5 / GPT-OSS)","remaining_amount":null,"disabled":false,"notes":null,"seconds_until_reset":-160949.136259,"reset_countdown":"now (resetting)","reset_local":"2026-11-17 15:53 PST","elapsed_percent":null,"pacing_ratio":null}],"model_pricing":[{"model_id":"gemini-4-argon (low/med/high) & orchestrator","display_name":"Gemini 4 Argon & Orchestrator","family":"Gemini Pro / Argon (Weekly Pool)","api_input_per_1m":2,"api_cached_per_1m":0.2,"api_output_per_1m":12,"session_100_turns_usd":"~$8.50–$18.00","subscription_burn_rate":"1.0x–1.5x Weekly Pool (~10–25 G1 AI Credits/turn overage)","perf_tier":"S+ Frontier Reasoning & Orchestration","value_rating":"★★★★★ Max Capability","capabilities":"1M+ context flagship reasoning & multi-agent orchestration. Over 200k context doubles API rate ($4/$18 per 1M); included in $19.99/mo G1 Pro weekly pool.","formatted_api_rates":"$2.00 in / $0.2 cache / $12.00 out per 1M"},{"model_id":"gemini-4-hydrogen (low/med/high/xhigh)","display_name":"Gemini 4 Hydrogen (Low → XHigh)","family":"Gemini Flash / Hydrogen (5h Pool)","api_input_per_1m":1.5,"api_cached_per_1m":0.075,"api_output_per_1m":7.5,"session_100_turns_usd":"~$4.20–$9.00","subscription_burn_rate":"0.25x–0.50x 5h Pool (~3–8 G1 AI Credits/turn overage)","perf_tier":"S High-Speed Frontier Coding","value_rating":"★★★★★ Best Speed/IQ ROI","capabilities":"High-velocity coding & deep reasoning (up to XHigh effort) drawing from the 5-hour rolling pool instead of the 7-day weekly Argon cap.","formatted_api_rates":"$1.50 in / $0.075 cache / $7.50 out per 1M"},{"model_id":"gemini-3.8-flash (low/med/high)","display_name":"Gemini 3.8 Flash (Low → High)","family":"Gemini Flash / Hydrogen (5h Pool)","api_input_per_1m":0.75,"api_cached_per_1m":0.075,"api_output_per_1m":3.75,"session_100_turns_usd":"~$2.10–$4.50","subscription_burn_rate":"0.15x–0.25x 5h Pool (~1–3 G1 AI Credits/turn overage)","perf_tier":"A+ Workhorse Agentic & Subagent Fan-Out","value_rating":"★★★★★ Best Budget Workhorse","capabilities":"Promotional API rate ($0.75/$3.75 per 1M; standard $1.50/$7.50). Ideal for parallel subagents, repository scans, and rapid edits.","formatted_api_rates":"$0.75 in / $0.075 cache / $3.75 out per 1M"},{"model_id":"gemini-3.1-flash-lite-preview","display_name":"Gemini 3.1 / 3.5 Flash-Lite","family":"Gemini Flash / Hydrogen (5h Pool)","api_input_per_1m":0.25,"api_cached_per_1m":0.03,"api_output_per_1m":1.5,"session_100_turns_usd":"~$0.80–$1.50","subscription_burn_rate":"0.10x 5h Pool (\u003c1 G1 AI Credit/turn overage)","perf_tier":"B Ultra-Cheap High-Throughput Utility","value_rating":"★★★★☆ Lowest Burn","capabilities":"Ultra-low-cost model for simple classification, summarization, and background hooks.","formatted_api_rates":"$0.25 in / $0.03 cache / $1.50 out per 1M"},{"model_id":"claude-opus-5-5 (low/med/high)","display_name":"Claude Opus 5.5 [Partner 3P]","family":"Partner 3P (5h Pool)","api_input_per_1m":4,"api_cached_per_1m":0.2,"api_output_per_1m":20,"session_100_turns_usd":"~$14.00–$32.00","subscription_burn_rate":"2.0x Partner 3P 5h Pool (~20–40 G1 AI Credits/turn overage)","perf_tier":"S+ Frontier Deep Reasoning & Refactoring","value_rating":"★★★★★ Highest API Value","capabilities":"Highest external API cost ($4/$20 per 1M). Using your included AGY 3P 5-hour pool saves ~$15–$30 in API fees per heavy coding session.","formatted_api_rates":"$4.00 in / $0.2 cache / $20.00 out per 1M"},{"model_id":"claude-sonnet-5-5 (low/med/high)","display_name":"Claude Sonnet 5.5 [Partner 3P]","family":"Partner 3P (5h Pool)","api_input_per_1m":2,"api_cached_per_1m":0.1,"api_output_per_1m":10,"session_100_turns_usd":"~$7.00–$16.00","subscription_burn_rate":"1.0x Partner 3P 5h Pool (~10–20 G1 AI Credits/turn overage)","perf_tier":"S Daily-Driver Coding & Tool Use","value_rating":"★★★★★ High 3P Value","capabilities":"Fast, accurate surgical code editing & debugging routed through Antigravity's 3P pool.","formatted_api_rates":"$2.00 in / $0.1 cache / $10.00 out per 1M"},{"model_id":"gpt-oss-120b-medium","display_name":"GPT-OSS 120B (Medium) [Partner 3P]","family":"Partner 3P (5h Pool)","api_input_per_1m":0.6,"api_cached_per_1m":0.15,"api_output_per_1m":2.4,"session_100_turns_usd":"~$1.80–$3.50","subscription_burn_rate":"0.35x Partner 3P 5h Pool","perf_tier":"A Open-Weights Reasoning Alternative","value_rating":"★★★★☆ Cross-Check Model","capabilities":"Independent non-Gemini/non-Claude reasoning perspective inside the 3P 5h pool.","formatted_api_rates":"$0.60 in / $0.15 cache / $2.40 out per 1M"}],"credits":[{"name":"Google One AI Credits (useG1Credits / useAiCredits)","enabled":true,"balance":null,"used":null,"limit":null,"utilization_percent":null,"unit":"AI credits","minimum_for_usage":null,"unlimited":false,"notes":"Overages enabled (will dip into AI credits when quota hits 0%)"}],"features":[{"name":"Shared Token Pools (Flash/Hydrogen 5h + Argon/Pro Weekly + 3P 5h)","category":"architecture","status":"active","used_count":null,"limit_count":null,"used_percent":null,"period":"5-hour rolling & 7-day weekly","resets_at":null,"details":"Gemini Flash & Hydrogen share a 5-hour rolling pool; Gemini 4 Argon & Orchestrator share a 7-day weekly pool; Claude 5.5 & GPT-OSS 120B share a 5-hour partner pool."},{"name":"Tab & Command Completions","category":"completions","status":"unlimited","used_count":null,"limit_count":null,"used_percent":null,"period":"continuous","resets_at":null,"details":"Unlimited inline tab completions and command completions on all plans."}],"discounts":[{"name":"Cost-Weighted Shared Pool (Flash / Low-Effort Discount)","active":true,"multiplier":"0.1x–0.25x pool burn weight","schedule":"Always active","details":"Using `gemini-3.8-flash-low` or `gemini-3.1-flash-lite-preview` consumes significantly less of the shared 5-hour pool than Pro/Argon or 3P Opus models."}],"best_bucket":{"provider_id":"agy","provider_name":"Google Antigravity (agy)","plan_tier":"Google AI Pro ($19.99/mo, G1 Pro)","window_id":"bucket:Partner 3P (Claude 5.5 / GPT-OSS):5h","bucket_name":"Partner 3P (Claude 5.5 / GPT-OSS) (5-Hour Rolling Pool)","family":"Partner 3P (Claude 5.5 / GPT-OSS)","period_type":"5h","remaining_percent":100,"used_percent":0,"unspent_slack_percent":20,"reset_countdown":"now (resetting)","reset_local":"2026-11-17 15:53 PST","pacing_ratio":null,"value_score":88.3,"reason":"100.0% remaining (0.0% used, 20% unspent time-window slack, untouched) • resets in now (resetting)","recommendation":"Run Claude Opus 5.5 (High), Claude Sonnet 5.5, or GPT-OSS 120B tasks in `agy` — 3P partner pool is untouched.","bonus_feature_note":null,"resets_at":"2026-11-17T23:53:25Z","urgency_tier":"week"},"local_stats":{"local_conversations":10,"local_trajectory_steps":1119,"input_tokens":5409821,"cache_read_tokens":64394650,"output_tokens":475681,"estimated_api_cost_usd":29.41,"recent_models_used":["claude-opus-5-5-medium","claude-sonnet-5-5-medium","gemini-4-argon-medium","gemini-4-hydrogen-high"],"snapshot_timestamp":"2026-11-17T18:58:22Z"},"warnings":[],"error":null,"fetched_at":"2026-11-19T20:35:53.276442+00:00"},{"provider_id":"claude","display_name":"Anthropic Claude (claude)","installed":true,"authenticated":true,"plan_tier":"Claude Pro ($20/mo, claude_pro) [default_claude_ai]","subscription_details":"1x baseline 5-hour rolling session + 7-day weekly unified pool (Opus/Sonnet/Haiku), 3 free /ultrareview runs.","account_email":null,"organization":"[redacted]","source":"live_api (file:.credentials.json)","cheapest_model":"claude-haiku-5-5","windows":[{"id":"five_hour","name":"5-Hour Rolling Session Limit","period_type":"5h","used_percent":16,"remaining_percent":84,"window_seconds":18000,"resets_at":"2026-11-20T01:19:59.974475+00:00","family":"All Models (Unified Pool)","remaining_amount":null,"disabled":false,"notes":"Starts on first prompt; shared across Claude Code, Web, Desktop & Mobile","seconds_until_reset":17045.838216,"reset_countdown":"4h 44m","reset_local":"2026-11-19 17:19 PST","elapsed_percent":5.3,"pacing_ratio":3.02},{"id":"seven_day","name":"7-Day Weekly Limit (All Models)","period_type":"weekly","used_percent":2,"remaining_percent":98,"window_seconds":604800,"resets_at":"2026-11-25T21:59:59.974493+00:00","family":"All Models","remaining_amount":null,"disabled":false,"notes":null,"seconds_until_reset":523445.838234,"reset_countdown":"6d 1h 24m","reset_local":"2026-11-25 13:59 PST","elapsed_percent":13.45,"pacing_ratio":0.15}],"model_quotas":[],"model_pricing":[{"model_id":"claude-opus-5-5","display_name":"Claude Opus 5.5","family":"Claude Opus (Frontier)","api_input_per_1m":4,"api_cached_per_1m":0.2,"api_output_per_1m":20,"session_100_turns_usd":"~$14.00–$32.00","subscription_burn_rate":"~2.0x–2.5x Unified 5h & 7d Pool (or $4/$20 per 1M on Extra Usage)","perf_tier":"S+ Frontier Architecture, Security & Deep Debugging","value_rating":"★★★★★ Max Capability","capabilities":"Highest reasoning depth for complex refactors & architecture. Just 1–2 heavy Opus sessions exceed the $20/mo Pro subscription cost in API terms.","formatted_api_rates":"$4.00 in / $0.2 cache / $20.00 out per 1M"},{"model_id":"claude-sonnet-5-5","display_name":"Claude Sonnet 5.5","family":"Claude Sonnet (Balanced)","api_input_per_1m":2,"api_cached_per_1m":0.1,"api_output_per_1m":10,"session_100_turns_usd":"~$7.00–$16.00","subscription_burn_rate":"1.0x Baseline Unified 5h & 7d Pool (or $2/$10 per 1M on Extra Usage)","perf_tier":"S Primary Software Engineering & Multi-File Editing","value_rating":"★★★★★ Best Coding Sweet Spot","capabilities":"Default workhorse in Claude Code; 95% of Opus coding performance at 50% of the API and quota cost, with 95% discount on cache reads ($0.10/1M).","formatted_api_rates":"$2.00 in / $0.1 cache / $10.00 out per 1M"},{"model_id":"claude-haiku-5-5","display_name":"Claude Haiku 5.5","family":"Claude Haiku (Fast/Cheap)","api_input_per_1m":0.1,"api_cached_per_1m":0.01,"api_output_per_1m":0.5,"session_100_turns_usd":"~$0.40–$1.80","subscription_burn_rate":"~0.10x–0.20x Unified Pool ($0.10/$0.50 \u003c=100k, $0.50/$2.50 >100k)","perf_tier":"A Ultra-Fast Subagent, Search & CLI Automation","value_rating":"★★★★★ 20x–40x Cheaper than Opus","capabilities":"Blazing fast and 40x cheaper than Opus for \u003c=100k context. Best for `claude --model claude-haiku-5-5 -p`, subagent searches, and log parsing.","formatted_api_rates":"$0.10 in / $0.01 cache / $0.50 out per 1M"},{"model_id":"ultrareview-cloud-sandbox","display_name":"Claude `/ultrareview` (Multi-Agent Cloud Sandbox)","family":"Cloud Sandbox Review","api_input_per_1m":4,"api_cached_per_1m":0.2,"api_output_per_1m":20,"session_100_turns_usd":"$5.00–$20.00 / run","subscription_burn_rate":"3 Free Trial Runs on Pro/Max, then $5–$20/run from Extra Usage","perf_tier":"S+ Parallel Multi-Agent Security & Logic Audit","value_rating":"★★★★★ Up to $60 Bundled Trial Value","capabilities":"Spins up parallel cloud reviewers to audit logic, security, and edge cases across your branch.","formatted_api_rates":"$4.00 in / $0.2 cache / $20.00 out per 1M"}],"credits":[{"name":"Claude Monthly Extra Usage / Overages","enabled":false,"balance":-35.7,"used":40.7,"limit":5,"utilization_percent":100,"unit":"USD","minimum_for_usage":null,"unlimited":false,"notes":"Monthly overage cap when 5-hour or 7-day subscription limits hit 100%"}],"features":[{"name":"Claude Code `/ultrareview` (Multi-Agent Cloud Sandbox Review)","category":"ultrareview","status":"available","used_count":0,"limit_count":3,"used_percent":null,"period":"trial + per-run cloud compute","resets_at":null,"details":"0 local `/ultrareview` run(s) detected in logs (~3 of 3 included Pro/Max trial runs remaining; subsequent runs cost $5–$20 or draw from Extra Usage)."},{"name":"5-Hour Session Lockout Exemption (Ultra Tier)","category":"tier_policy","status":"pro_max_5h_enforced","used_count":null,"limit_count":null,"used_percent":null,"period":"5-hour rolling vs. 7-day weekly","resets_at":null,"details":"Pro ($20) & Max ($100) enforce both 5-hour rolling and 7-day weekly limits; verified Ultra ($200) removes the 5-hour rolling session cap."}],"discounts":[{"name":"Off-Peak Promotional Window (2x 5-Hour Capacity / 0.5x Burn)","active":false,"multiplier":"0.5x burn rate (2x effective 5h limit)","schedule":"Evenings/Nights (20:00–08:00) & Weekends","details":"Current local status: Peak weekday hours (Thursday 12:35 PST). During promotional off-peak periods, 5-hour session consumption counts at 0.5x."},{"name":"Haiku Model Family Cost Multiplier","active":true,"multiplier":"~0.1x–0.2x vs. Opus / ~0.3x vs. Sonnet","schedule":"Always active","details":"Using `--model claude-haiku-5-5` (or `haiku`) for subagents and lightweight queries preserves 5h and 7d pools."}],"best_bucket":{"provider_id":"claude","provider_name":"Anthropic Claude (claude)","plan_tier":"Claude Pro ($20/mo, claude_pro) [default_claude_ai]","window_id":"seven_day","bucket_name":"7-Day Weekly Limit (All Models)","family":"All Models","period_type":"weekly","remaining_percent":98,"used_percent":2,"unspent_slack_percent":11.4,"reset_countdown":"6d 1h 24m","reset_local":"2026-11-25 13:59 PST","pacing_ratio":0.15,"value_score":83.8,"reason":"98.0% remaining (2.0% used, 11% unspent time-window slack, pace 0.15x) • resets in 6d 1h 24m","recommendation":"High weekly Claude Code allowance remaining across Opus & Sonnet before the weekly reset.","bonus_feature_note":"Also 3/3 free `/ultrareview` cloud sandbox runs unused ($5–$20 value/run)","resets_at":"2026-11-25T21:59:59.974493+00:00","urgency_tier":"week"},"local_stats":{"cached_workspaces":["/home/coldfire/projects/FableArchiveVault","/home/coldfire/projects/my/claude/project"],"session_files":11,"total_messages":7200,"ultrareview_runs_detected":0,"models_seen":["\u003csynthetic>","claude-fable-5-2","claude-haiku-5-5","claude-opus-5-5"],"input_tokens":3789,"output_tokens":3658772},"warnings":[],"error":null,"fetched_at":"2026-11-19T20:35:53.598958+00:00"},{"provider_id":"codex","display_name":"OpenAI Codex (codex)","installed":true,"authenticated":true,"plan_tier":"ChatGPT Plus ($20/mo)","subscription_details":"5-hour rolling primary window (~10–15% of weekly budget) + 7-day weekly cap, Expanded Deep Research (~25/mo, 30d rolling), automated Code Review quota + 100 Usage Credits balance.","account_email":"[redacted]","organization":"[redacted]","source":"live_api (file:auth.json)","cheapest_model":"gpt-5-mini","windows":[{"id":"primary_window","name":"Primary Rolling Window (5-Hour Session)","period_type":"5h","used_percent":57,"remaining_percent":43,"window_seconds":18000,"resets_at":"2026-11-20T01:14:23+00:00","family":"Codex & ChatGPT Shared Pool","remaining_amount":null,"disabled":false,"notes":null,"seconds_until_reset":16708.863741,"reset_countdown":"4h 38m","reset_local":"2026-11-19 17:14 PST","elapsed_percent":7.17,"pacing_ratio":7.95},{"id":"secondary_window","name":"Secondary Rolling Window (7-Day Weekly Cap)","period_type":"weekly","used_percent":10,"remaining_percent":90,"window_seconds":604800,"resets_at":"2026-11-25T16:51:22+00:00","family":"Codex & ChatGPT Shared Pool","remaining_amount":null,"disabled":false,"notes":null,"seconds_until_reset":504927.863741,"reset_countdown":"5d 20h 15m","reset_local":"2026-11-25 08:51 PST","elapsed_percent":16.51,"pacing_ratio":0.61}],"model_quotas":[],"model_pricing":[{"model_id":"gpt-5.4 / gpt-5 (codex-frontier)","display_name":"GPT-5.4 / GPT-5 (Codex Frontier)","family":"Codex Primary / Weekly Pool","api_input_per_1m":2.5,"api_cached_per_1m":0.25,"api_output_per_1m":15,"session_100_turns_usd":"~$8.00–$18.00","subscription_burn_rate":"1.0x Standard 5h & 7d Codex Pool","perf_tier":"S+ Flagship Full-Repo Coding & Cloud Agent","value_rating":"★★★★★ High Subscription ROI","capabilities":"Primary frontier coding model ($1.25–$2.50 in / $10–$15 out per 1M on API). High API output cost makes using your Plus/Pro weekly pool extremely valuable.","formatted_api_rates":"$2.50 in / $0.25 cache / $15.00 out per 1M"},{"model_id":"o3 (deep-reasoning)","display_name":"OpenAI o3 (Deep Reasoning)","family":"Codex Primary / Weekly Pool","api_input_per_1m":2,"api_cached_per_1m":0.5,"api_output_per_1m":8,"session_100_turns_usd":"~$7.50–$20.00","subscription_burn_rate":"1.0x–1.5x Standard Pool (scales with reasoning depth)","perf_tier":"S+ Deep Algorithmic, Math & Root-Cause Reasoning","value_rating":"★★★★★ Max Reasoning Depth","capabilities":"Internal thinking tokens are billed at $8.00/1M on API; best for gnarly concurrency bugs, architecture proofs, and complex diffs.","formatted_api_rates":"$2.00 in / $0.5 cache / $8.00 out per 1M"},{"model_id":"codex-mini-latest / o4-mini","display_name":"Codex Mini (`codex-mini-latest`) & `o4-mini`","family":"Codex Fast / Mini Tier","api_input_per_1m":1.5,"api_cached_per_1m":0.375,"api_output_per_1m":6,"session_100_turns_usd":"~$3.50–$6.50","subscription_burn_rate":"~0.35x–0.50x Standard Pool","perf_tier":"A+ Fast Terminal & Iterative Patching","value_rating":"★★★★☆ Fast & Responsive","capabilities":"Fine-tuned for terminal tool execution and rapid test-fix loops (`o4-mini` is $1.10 in / $0.28 cache / $4.40 out per 1M).","formatted_api_rates":"$1.50 in / $0.375 cache / $6.00 out per 1M"},{"model_id":"gpt-5-mini","display_name":"GPT-5 Mini (`gpt-5-mini` / `gpt-5.4-mini`)","family":"Codex Fast / Mini Tier","api_input_per_1m":0.5,"api_cached_per_1m":0.05,"api_output_per_1m":2.5,"session_100_turns_usd":"~$1.20–$3.00","subscription_burn_rate":"~0.25x–0.30x Standard Pool (~3.3x more turns per 5h window)","perf_tier":"A High-Efficiency Subtasks & Quick Edits","value_rating":"★★★★★ Best Quota Stretcher","capabilities":"Consumes only ~30% of standard model quota in Codex CLI; ideal when conserving your 5-hour window (which is 10–15% of weekly budget on Plus).","formatted_api_rates":"$0.50 in / $0.05 cache / $2.50 out per 1M"},{"model_id":"deep-research","display_name":"OpenAI Deep Research (Multi-Step Synthesis)","family":"30-Day Rolling Task Counter","api_input_per_1m":2,"api_cached_per_1m":0.5,"api_output_per_1m":8,"session_100_turns_usd":"$2.00–$8.00 / report (~50 credits)","subscription_burn_rate":"1 Task from 30d Rolling Pool (~25/mo Plus, ~250/mo Pro)","perf_tier":"S+ Autonomous Multi-Source Web & Code Research","value_rating":"★★★★★ $50–$150+/mo Bundled Value","capabilities":"Executes dozens of autonomous search + reasoning turns per report; using all 25 Plus runs/mo equals ~$50–$150+ in raw API + search tool costs.","formatted_api_rates":"$2.00 in / $0.5 cache / $8.00 out per 1M"}],"credits":[{"name":"OpenAI / ChatGPT Usage Credits","enabled":true,"balance":100,"used":null,"limit":null,"utilization_percent":null,"unit":"credits","minimum_for_usage":null,"unlimited":false,"notes":"Available to extend weekly allowance or run cloud tasks"},{"name":"Workspace Monthly Spend Control","enabled":true,"balance":null,"used":null,"limit":null,"utilization_percent":null,"unit":"USD","minimum_for_usage":null,"unlimited":false,"notes":"Active workspace spend cap"}],"features":[{"name":"OpenAI Deep Research (Expanded (~25/mo))","category":"deep_research","status":"available","used_count":0,"limit_count":25,"used_percent":0,"period":"30-day rolling window from first task","resets_at":null,"details":"0 local Deep Research run(s) in last 30d. Refreshes on a personal 30-day rolling cycle from your first task (or ~50 credits/task on Business)."},{"name":"Codex Cloud & GitHub Code Review (`code_review_rate_limit`)","category":"code_review","status":"available","used_count":null,"limit_count":null,"used_percent":null,"period":"5-hour & weekly rolling","resets_at":null,"details":"Dedicated rate-limit bucket tracked via `code_review_rate_limit` in WHAM usage API."}],"discounts":[{"name":"Mini Model Quota Discount (`gpt-5-mini` / `codex-mini`)","active":true,"multiplier":"~0.25x–0.30x standard token burn","schedule":"Always active","details":"Running `codex exec -m gpt-5-mini` consumes ~30% of standard frontier model quota and preserves both the 5-hour window (10–15% of weekly budget) and 7-day cap."}],"best_bucket":{"provider_id":"codex","provider_name":"OpenAI Codex (codex)","plan_tier":"ChatGPT Plus ($20/mo)","window_id":"secondary_window","bucket_name":"Secondary Rolling Window (7-Day Weekly Cap)","family":"Codex & ChatGPT Shared Pool","period_type":"weekly","remaining_percent":90,"used_percent":10,"unspent_slack_percent":6.5,"reset_countdown":"5d 20h 15m","reset_local":"2026-11-25 08:51 PST","pacing_ratio":0.61,"value_score":76,"reason":"90.0% remaining (10.0% used, 6% unspent time-window slack, pace 0.61x) • resets in 5d 20h 15m","recommendation":"Large share of weekly Codex frontier token cap is unspent — run multi-file refactors or cloud agent tasks.","bonus_feature_note":"Also 25/25 monthly Deep Research tasks unused","resets_at":"2026-11-25T16:51:22+00:00","urgency_tier":"week"},"local_stats":{"session_files":14,"models_seen":["codex-auto-review","gpt-5.3-codex","gpt-6.1-sol","gpt-6.2-astra","gpt-6.2-sol"],"deep_research_runs_30d":0},"warnings":[],"error":null,"fetched_at":"2026-11-19T20:35:53.542023+00:00"}],"refresh_interval_sec":60},"captured_at":"2026-11-19T20:36:10.572Z","refresh_sec":60}</script><script>
+    const snapEl = document.getElementById('snapshot-data');
+    const SNAPSHOT = snapEl ? JSON.parse(snapEl.textContent) : null;
+    let currentReport = null;
+    let refreshSec = 60;
+    let lastFetchMs = null;     // browser time of last successful fetch
+    let nextFetchMs = null;
+    let fetchError = null;
+
+    // "Now" for countdowns: frozen at capture time in a snapshot.
+    function nowMs() { return SNAPSHOT ? new Date(SNAPSHOT.report.generated_at).getTime() : Date.now(); }
+
+    function applyTheme(t) {
+      document.documentElement.setAttribute('data-theme', t);
+      const b = document.getElementById('theme-btn');
+      if (b) b.textContent = t === 'light' ? '☀ Light' : '☾ Dark';
+    }
+    function toggleTheme() {
+      const t = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+      try { localStorage.setItem('usage-view-theme', t); } catch (e) {}
+      applyTheme(t);
+    }
+    (function initTheme() {
+      let t = null;
+      try { t = localStorage.getItem('usage-view-theme'); } catch (e) {}
+      if (!t) t = (window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches) ? 'light' : 'dark';
+      applyTheme(t);
+    })();
+
+    function saveSnapshot() {
+      if (!currentReport) return;
+      const clone = document.documentElement.cloneNode(true);
+      const data = document.createElement('script');
+      data.id = 'snapshot-data';
+      data.type = 'application/json';
+      data.textContent = JSON.stringify({
+        report: currentReport,
+        captured_at: new Date().toISOString(),
+        refresh_sec: refreshSec,
+      }).replace(/</g, '\\u003c');
+      clone.querySelector('body').insertBefore(data, clone.querySelector('body script'));
+      const html = '<!DOCTYPE html>\n' + clone.outerHTML;
+      const blob = new Blob([html], {type: 'text/html'});
+      const a = document.createElement('a');
+      const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+      a.href = URL.createObjectURL(blob);
+      a.download = `usage-view-snapshot-${stamp}.html`;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    }
+
+    function fmtClock(ms) { return new Date(ms).toLocaleTimeString(); }
+
+    function updateBanner() {
+      const el = document.getElementById('status-banner');
+      if (SNAPSHOT) {
+        el.className = 'banner snapshot';
+        el.textContent = `📸 Static snapshot — data collected ${new Date(SNAPSHOT.report.generated_at).toLocaleString()}, ` +
+          `saved ${new Date(SNAPSHOT.captured_at).toLocaleString()}. Not live; countdowns are frozen at collection time.`;
+        return;
+      }
+      if (!lastFetchMs) { el.className = 'banner'; el.textContent = fetchError ? `⚠ ${fetchError}` : 'Loading…'; return; }
+      const left = Math.max(0, Math.round((nextFetchMs - Date.now()) / 1000));
+      el.className = 'banner' + (fetchError ? ' stale' : '');
+      el.textContent = `● Live — data sent by server at ${fmtClock(lastFetchMs)}; next automatic update in ${left}s ` +
+        `(every ${refreshSec}s).` + (fetchError ? ` ⚠ Last update failed (${fetchError}); showing previous data.` : '');
+    }
+    const openSections = new Set();
+    let initializedDefaults = false;
+
+    function barColor(usedPct) {
+      if (usedPct >= 85) return 'var(--red)';
+      if (usedPct >= 60) return 'var(--yellow)';
+      return 'var(--green)';
+    }
+
+    function fmtCountdown(isoReset) {
+      if (!isoReset) return 'N/A';
+      const target = new Date(isoReset).getTime();
+      if (isNaN(target)) return 'N/A';
+      const diffSec = Math.round((target - nowMs()) / 1000);
+      if (diffSec <= 0) return 'reset time passed (awaiting fresh data)';
+      const d = Math.floor(diffSec / 86400);
+      const h = Math.floor((diffSec % 86400) / 3600);
+      const m = Math.floor((diffSec % 3600) / 60);
+      const s = diffSec % 60;
+      if (d > 0) return `${d}d ${h}h ${m}m`;
+      if (h > 0) return `${h}h ${m}m ${s}s`;
+      return `${m}m ${s}s`;
+    }
+
+    function recordSectionState() {
+      document.querySelectorAll('details.collapsible[data-sec-id]').forEach(el => {
+        const id = el.getAttribute('data-sec-id');
+        if (el.open) openSections.add(id);
+        else openSections.delete(id);
+      });
+    }
+
+    function toggleAllDetails(expand) {
+      document.querySelectorAll('details.collapsible[data-sec-id]').forEach(el => {
+        el.open = expand;
+        const id = el.getAttribute('data-sec-id');
+        if (expand) openSections.add(id);
+        else openSections.delete(id);
+      });
+    }
+
+    function isOpenAttr(secId, defaultOpen = false) {
+      if (!initializedDefaults && defaultOpen) {
+        openSections.add(secId);
+      }
+      return openSections.has(secId) ? 'open' : '';
+    }
+
+    function tickCountdowns() {
+      document.querySelectorAll('[data-reset-iso]').forEach(el => {
+        const iso = el.getAttribute('data-reset-iso');
+        el.textContent = fmtCountdown(iso);
+      });
+    }
+
+    function render() {
+      if (!currentReport) return;
+      if (initializedDefaults) {
+        recordSectionState();
+      }
+      document.getElementById('last-updated').textContent =
+        `Data collected: ${new Date(currentReport.generated_at).toLocaleString()} • Zero-LLM API & Local Telemetry Mode`;
+
+      const ob = currentReport.overall_best_bucket;
+      const heroContainer = document.getElementById('overall-best-container');
+      if (ob) {
+        heroContainer.innerHTML = `
+          <div class="hero-banner">
+            <div class="hero-title">★ Overall Highest-Value Under-Utilized Bucket Across All Subscriptions</div>
+            <div class="hero-main">${ob.provider_name} [${ob.plan_tier}] — ${ob.bucket_name}</div>
+            <div class="hero-sub">
+              <strong style="color:#34d399">${ob.reason}</strong><br/>
+              → ${ob.recommendation}
+              ${ob.bonus_feature_note ? `<br/><span style="color:#d8b4fe">★ ${ob.bonus_feature_note}</span>` : ''}
+            </div>
+          </div>
+        `;
+      } else {
+        heroContainer.innerHTML = '';
+      }
+
+      const priorityContainer = document.getElementById('use-it-or-lose-it-container');
+      const queue = currentReport.use_it_or_lose_it_queue || [];
+      const conserve = currentReport.conserve_buckets || [];
+      if (queue.length || conserve.length) {
+        const urgencyTag = (u) => {
+          if (u === 'immediate') return '<span class="tag tag-red">🔥 &lt;2h IMMINENT</span>';
+          if (u === 'today') return '<span class="tag tag-yellow">⚡ &lt;24h TODAY</span>';
+          return '<span class="tag">📅 THIS WEEK</span>';
+        };
+        const queueCards = queue.map((item, idx) => `
+          <div class="priority-item urgency-${item.urgency_tier || 'today'}">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px">
+              <span><strong style="color:#38bdf8">#${idx + 1}</strong> <strong>[${item.provider_id.toUpperCase()}] ${item.bucket_name}</strong></span>
+              <span>${urgencyTag(item.urgency_tier)} <span class="tag tag-green">${item.remaining_percent.toFixed(0)}% left</span></span>
+            </div>
+            <div class="bar-track" style="height:7px;margin-bottom:6px">
+              <div class="bar-fill" style="width:${Math.min(100, item.used_percent)}%; background:${barColor(item.used_percent)}"></div>
+            </div>
+            <div class="item-sub" style="color:var(--text)">
+              ⏳ Resets in <strong style="color:#fbbf24" data-reset-iso="${item.resets_at || ''}">${fmtCountdown(item.resets_at)}</strong> (${item.reset_local || 'N/A'}) • Score: <strong>${item.value_score}</strong>
+            </div>
+            <div class="item-sub">→ ${item.recommendation}</div>
+            ${item.bonus_feature_note ? `<div class="item-sub" style="color:#d8b4fe">★ ${item.bonus_feature_note}</div>` : ''}
+          </div>
+        `).join('');
+
+        const conserveHtml = conserve.length ? `
+          <div class="conserve-box">
+            <div style="color:#f87171;font-weight:700;margin-bottom:4px">🛑 Buckets to Conserve / Avoid Burning Right Now</div>
+            ${conserve.map(cb => `
+              <div class="item-sub" style="color:#fecaca">
+                • <strong>[${cb.provider_id.toUpperCase()}] ${cb.bucket_name}</strong> — Only <strong>${cb.remaining_percent.toFixed(0)}% left</strong> (${cb.used_percent.toFixed(0)}% used, pace ${cb.pacing_ratio ? cb.pacing_ratio + 'x' : 'high'}), resets in <strong data-reset-iso="${cb.resets_at || ''}">${fmtCountdown(cb.resets_at)}</strong>.
+              </div>
+            `).join('')}
+          </div>
+        ` : '';
+
+        priorityContainer.innerHTML = `
+          <details class="collapsible" data-sec-id="global-use-it-or-lose-it" ${isOpenAttr('global-use-it-or-lose-it', true)}>
+            <summary>⏳ Use-It-Or-Lose-It Prioritization Queue (${queue.length} expiring opportunities${conserve.length ? `, ${conserve.length} conserve alert` : ''})</summary>
+            <div class="collapsible-body">
+              <div class="priority-grid">${queueCards}</div>
+              ${conserveHtml}
+            </div>
+          </details>
+        `;
+      } else {
+        priorityContainer.innerHTML = '';
+      }
+
+      const grid = document.getElementById('providers-grid');
+      grid.innerHTML = currentReport.providers.map(p => {
+        const pid = p.provider_id;
+        const statusClass = p.authenticated ? 'status-auth' : 'status-inst';
+        const statusLabel = p.authenticated ? '● Authenticated' : (p.installed ? '◐ Installed' : '○ Not Detected');
+
+        const bestHtml = p.best_bucket ? `
+          <div class="best-box">
+            <div style="color:#34d399;font-weight:700;margin-bottom:2px">★ Best Under-Utilized Bucket: ${p.best_bucket.bucket_name}</div>
+            <div>${p.best_bucket.reason}</div>
+            <div class="item-sub" style="color:var(--text)">→ ${p.best_bucket.recommendation}</div>
+            ${p.best_bucket.bonus_feature_note ? `<div class="item-sub" style="color:#d8b4fe">★ ${p.best_bucket.bonus_feature_note}</div>` : ''}
+          </div>
+        ` : '';
+
+        const windowsHtml = p.windows.length ? p.windows.map(w => `
+          <div class="window-box">
+            <div class="window-top">
+              <span>${w.name}</span>
+              <span style="color:${barColor(w.used_percent)}">${w.used_percent.toFixed(1)}% used (${w.remaining_percent.toFixed(1)}% left)</span>
+            </div>
+            <div class="bar-track">
+              <div class="bar-fill" style="width:${Math.min(100, w.used_percent)}%; background:${barColor(w.used_percent)}"></div>
+            </div>
+            <div class="window-meta">
+              <span>⏳ Resets in <strong style="color:#38bdf8" data-reset-iso="${w.resets_at || ''}">${fmtCountdown(w.resets_at)}</strong> (${w.reset_local || 'N/A'})</span>
+              ${w.pacing_ratio !== null && w.pacing_ratio !== undefined ? `<span>Pace: <strong>${w.pacing_ratio}x</strong></span>` : ''}
+            </div>
+            ${w.notes ? `<div class="item-sub">${w.notes}</div>` : ''}
+          </div>
+        `).join('') : `<div class="item-sub">No active quota window telemetry returned yet.</div>`;
+
+        const pricingSecId = `${pid}-pricing`;
+        const pricingHtml = (p.model_pricing && p.model_pricing.length) ? `
+          <details class="collapsible" data-sec-id="${pricingSecId}" ${isOpenAttr(pricingSecId, false)}>
+            <summary>External API Costs (vs. Monthly Plan) & Value/Perf (${p.model_pricing.length} tiers)</summary>
+            <div class="collapsible-body">
+              ${p.model_pricing.map(mp => `
+                <div class="pricing-card">
+                  <div class="pricing-top">
+                    <span>${mp.display_name}</span>
+                    <span>
+                      <span class="tag tag-purple">${mp.perf_tier}</span>
+                      <span class="tag tag-green">${mp.value_rating}</span>
+                    </span>
+                  </div>
+                  <div class="pricing-rates">
+                    <strong>API Cost:</strong> ${mp.formatted_api_rates} • <span class="tag tag-yellow">100-Turn Session: ${mp.session_100_turns_usd}</span>
+                  </div>
+                  <div class="item-sub" style="color:var(--text)"><strong>Plan Burn:</strong> ${mp.subscription_burn_rate}</div>
+                  <div class="item-sub">${mp.capabilities}</div>
+                </div>
+              `).join('')}
+            </div>
+          </details>
+        ` : '';
+
+        const modelsSecId = `${pid}-models`;
+        const modelsHtml = (p.model_quotas && p.model_quotas.length) ? `
+          <details class="collapsible" data-sec-id="${modelsSecId}" ${isOpenAttr(modelsSecId, false)}>
+            <summary>Per-Model / Family Quota Breakdown (${p.model_quotas.length})</summary>
+            <div class="collapsible-body">
+              <table class="model-table">
+                <thead><tr><th>Model / Family</th><th>Window</th><th>Remaining</th><th>Resets In</th></tr></thead>
+                <tbody>
+                  ${p.model_quotas.map(m => `
+                    <tr>
+                      <td>${m.name}</td>
+                      <td><span class="tag">${m.period_type}</span></td>
+                      <td style="color:${barColor(m.used_percent)};font-weight:600">${m.remaining_percent.toFixed(1)}%</td>
+                      <td data-reset-iso="${m.resets_at || ''}">${fmtCountdown(m.resets_at)}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </details>
+        ` : '';
+
+        const creditsSecId = `${pid}-credits`;
+        const creditsHtml = (p.credits && p.credits.length) ? `
+          <details class="collapsible" data-sec-id="${creditsSecId}" ${isOpenAttr(creditsSecId, true)}>
+            <summary>Credits, Overages & Monthly Caps (${p.credits.length})</summary>
+            <div class="collapsible-body">
+              ${p.credits.map(c => `
+                <div class="list-item">
+                  <div><strong>${c.name}</strong> <span class="tag ${c.enabled ? 'tag-green' : ''}">${c.enabled ? 'Enabled' : 'Disabled'}</span>
+                  ${c.balance !== null && c.balance !== undefined ? ` • Balance: <strong>${c.balance} ${c.unit}</strong>` : ''}
+                  ${c.limit !== null && c.limit !== undefined ? ` • Cap: <strong>${c.limit} ${c.unit}</strong>` : ''}
+                  </div>
+                  ${c.notes ? `<div class="item-sub">${c.notes}</div>` : ''}
+                </div>
+              `).join('')}
+            </div>
+          </details>
+        ` : '';
+
+        const featuresSecId = `${pid}-features`;
+        const featuresHtml = (p.features && p.features.length) ? `
+          <details class="collapsible" data-sec-id="${featuresSecId}" ${isOpenAttr(featuresSecId, true)}>
+            <summary>Special Limits (Ultrareview, Deep Research, Code Review)</summary>
+            <div class="collapsible-body">
+              ${p.features.map(f => `
+                <div class="list-item">
+                  <div><strong>${f.name}</strong> <span class="tag">${f.period || f.status}</span></div>
+                  ${f.details ? `<div class="item-sub">${f.details}</div>` : ''}
+                </div>
+              `).join('')}
+            </div>
+          </details>
+        ` : '';
+
+        const discountsSecId = `${pid}-discounts`;
+        const discountsHtml = (p.discounts && p.discounts.length) ? `
+          <details class="collapsible" data-sec-id="${discountsSecId}" ${isOpenAttr(discountsSecId, false)}>
+            <summary>Free / Discounted Periods & Multipliers (${p.discounts.length})</summary>
+            <div class="collapsible-body">
+              ${p.discounts.map(d => `
+                <div class="list-item">
+                  <div><strong>${d.name}</strong> <span class="tag ${d.active ? 'tag-green' : ''}">${d.active ? 'ACTIVE NOW' : d.schedule}</span> • ${d.multiplier}</div>
+                  <div class="item-sub">${d.details}</div>
+                </div>
+              `).join('')}
+            </div>
+          </details>
+        ` : '';
+
+        const estApi = p.local_stats && p.local_stats.estimated_api_cost_usd
+          ? `<span><strong>Local Transcript API Equiv:</strong> <strong style="color:#34d399">~$${p.local_stats.estimated_api_cost_usd.toFixed(2)} USD</strong></span>`
+          : '';
+
+        return `
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="provider-title">${p.display_name}</div>
+                <span class="tier-badge">Subscription: ${p.plan_tier}</span>
+                ${p.subscription_details ? `<div class="item-sub" style="margin-top:6px">${p.subscription_details}</div>` : ''}
+              </div>
+              <span class="status-pill ${statusClass}">${statusLabel}</span>
+            </div>
+            <div class="meta-row">
+              <span><strong>Source:</strong> ${p.source}</span>
+              <span><strong>Cheapest Model:</strong> <code>${p.cheapest_model}</code></span>
+              ${p.account_email ? `<span><strong>Account:</strong> ${p.account_email}</span>` : ''}
+              ${estApi}
+            </div>
+            ${bestHtml}
+            <div>
+              <div class="section-title">Quota Windows & Reset Timers</div>
+              ${windowsHtml}
+            </div>
+            ${pricingHtml}
+            ${modelsHtml}
+            ${creditsHtml}
+            ${featuresHtml}
+            ${discountsHtml}
+          </div>
+        `;
+      }).join('');
+
+      initializedDefaults = true;
+      document.querySelectorAll('details.collapsible[data-sec-id]').forEach(el => {
+        el.addEventListener('toggle', () => {
+          const id = el.getAttribute('data-sec-id');
+          if (el.open) openSections.add(id);
+          else openSections.delete(id);
+        });
+      });
+    }
+
+    async function refreshData() {
+      try {
+        const res = await fetch('/api/usage');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const payload = await res.json();
+        refreshSec = payload.refresh_interval_sec || refreshSec;
+        currentReport = payload;
+        lastFetchMs = Date.now();
+        fetchError = null;
+        render();
+      } catch (e) {
+        fetchError = String(e.message || e);
+      }
+      nextFetchMs = Date.now() + refreshSec * 1000;
+      clearTimeout(refreshTimer);
+      refreshTimer = setTimeout(refreshData, refreshSec * 1000);
+      updateBanner();
+    }
+
+    let refreshTimer = null;
+    if (SNAPSHOT) {
+      currentReport = SNAPSHOT.report;
+      ['refresh-btn', 'save-btn'].forEach(id => document.getElementById(id).style.display = 'none');
+      render();
+      updateBanner();
+      tickCountdowns();
+    } else {
+      refreshData();
+      setInterval(() => { tickCountdowns(); updateBanner(); }, 1000);
+    }
+  </script>
+
+
+</body></html>
