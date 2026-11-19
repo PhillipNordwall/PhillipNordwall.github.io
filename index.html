@@ -36,6 +36,17 @@
       nav a {
         color: inherit;
       }
+
+      #physics-readout {
+        position: fixed;
+        top: 0;
+        right: 0;
+        margin: 0;
+        padding: 0.75rem;
+        background: #192b45;
+        color: #fff;
+        pointer-events: none;
+      }
     </style>
   </head>
   <body>
@@ -46,11 +57,14 @@
         <li><a href="./usage-view-web/">usage-view-web</a></li>
       </ul>
     </nav>
+    <pre id="physics-readout" aria-label="Physics values" hidden></pre>
     <script>
       const playfield = document.querySelector('#playfield');
+      const readout = document.querySelector('#physics-readout');
+      const initialBallCount = 24;
       const initialSpeed = 225;
-      const attraction = 48000;
-      const repulsion = 96000;
+      const attraction = 96000;
+      const repulsion = 192000;
       const balls = [];
       let diameter;
       let maxX;
@@ -80,7 +94,7 @@
         };
         balls.push(ball);
         playfield.append(element);
-        measure();
+        if (balls.length === 1) measure();
 
         // Try a bounded number of positions so adding still works in a crowded field.
         for (let attempt = 0; attempt < 50; attempt++) {
@@ -188,6 +202,28 @@
         }
       }
 
+      function updateReadout() {
+        let minSpeed = Infinity;
+        let maxSpeed = 0;
+        for (const ball of balls) {
+          const speed = Math.hypot(ball.vx, ball.vy);
+          minSpeed = Math.min(minSpeed, speed);
+          maxSpeed = Math.max(maxSpeed, speed);
+        }
+        const speedRange = balls.length
+          ? `${minSpeed.toFixed(1)}–${maxSpeed.toFixed(1)} px/s`
+          : '—';
+        const values = [
+          `Balls       ${balls.length}`,
+          `Force scale ${forceScale.toFixed(2)}×`,
+          `Attraction  ${(forceScale * attraction).toFixed(0)}`,
+          `Repulsion   ${(forceScale * repulsion).toFixed(0)}`,
+          `Speed range ${speedRange}`,
+          `Animation   ${paused ? 'Paused' : 'Running'}`,
+        ].join('\n');
+        if (readout.textContent !== values) readout.textContent = values;
+      }
+
       function animate(now) {
         const elapsed = Math.min((now - (previousTime ?? now)) / 1000, 0.05);
         previousTime = now;
@@ -198,11 +234,11 @@
           }
           render();
         }
+        if (!readout.hidden) updateReadout();
         requestAnimationFrame(animate);
       }
 
-      addBall();
-      addBall();
+      for (let i = 0; i < initialBallCount; i++) addBall();
 
       window.addEventListener('resize', measure);
       window.addEventListener('wheel', (event) => {
@@ -210,6 +246,10 @@
         forceScale = Math.max(0.01, Math.min(100, forceScale * 1.1 ** -Math.sign(event.deltaY)));
       }, { passive: true });
       window.addEventListener('keydown', (event) => {
+        if (event.key === 'Shift') {
+          updateReadout();
+          readout.hidden = false;
+        }
         if (event.ctrlKey || event.metaKey || event.altKey) return;
         if (event.key === ' ') {
           event.preventDefault();
@@ -231,13 +271,19 @@
           forceScale = 1;
         }
       });
+      window.addEventListener('keyup', (event) => {
+        if (event.key === 'Shift') readout.hidden = !event.shiftKey;
+      });
       window.addEventListener('pointermove', (event) => {
         if (event.pointerType === 'mouse') {
           pointer = { x: event.clientX, y: event.clientY };
         }
       });
       document.documentElement.addEventListener('pointerleave', () => { pointer = null; });
-      window.addEventListener('blur', () => { pointer = null; });
+      window.addEventListener('blur', () => {
+        pointer = null;
+        readout.hidden = true;
+      });
       requestAnimationFrame(animate);
 
       if ('serviceWorker' in navigator) {
