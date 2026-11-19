@@ -58,6 +58,7 @@
       let forceScale = 1;
       let pointer = null;
       let previousTime;
+      let paused = false;
 
       function measure() {
         if (balls.length === 0) return;
@@ -190,11 +191,13 @@
       function animate(now) {
         const elapsed = Math.min((now - (previousTime ?? now)) / 1000, 0.05);
         previousTime = now;
-        const steps = Math.ceil(elapsed * 240);
-        for (let step = 0; step < steps; step++) {
-          advance(elapsed / steps);
+        if (!paused) {
+          const steps = Math.ceil(elapsed * 240);
+          for (let step = 0; step < steps; step++) {
+            advance(elapsed / steps);
+          }
+          render();
         }
-        render();
         requestAnimationFrame(animate);
       }
 
@@ -208,6 +211,20 @@
       }, { passive: true });
       window.addEventListener('keydown', (event) => {
         if (event.ctrlKey || event.metaKey || event.altKey) return;
+        if (event.key === ' ') {
+          event.preventDefault();
+          if (!event.repeat) {
+            paused = !paused;
+            previousTime = undefined;
+          }
+        }
+        if (event.key === '>' || event.key === '<') {
+          const speedFactor = event.key === '>' ? 1.1 : 1 / 1.1;
+          for (const ball of balls) {
+            ball.vx *= speedFactor;
+            ball.vy *= speedFactor;
+          }
+        }
         if (event.key === '+') addBall();
         if (event.key === '-') removeBall();
         if (event.key === '0') {
