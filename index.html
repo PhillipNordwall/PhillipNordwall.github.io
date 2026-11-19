@@ -24,12 +24,29 @@
         border-radius: 50%;
         background: #ffd166;
       }
+
+      nav {
+        position: relative;
+        width: fit-content;
+        background: #192b45;
+        color: #fff;
+      }
+
+      nav a {
+        color: inherit;
+      }
     </style>
   </head>
   <body>
     <main id="playfield" aria-label="Bouncing ball animation">
       <div id="ball"></div>
     </main>
+    <nav aria-label="Projects">
+      <ul>
+        <li><a href="./deep_research/">deep|research</a></li>
+        <li><a href="./usage-view-web/">usage-view-web</a></li>
+      </ul>
+    </nav>
     <script>
       const playfield = document.querySelector('#playfield');
       const ball = document.querySelector('#ball');
