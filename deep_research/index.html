@@ -221,7 +221,7 @@ details.rubric[open] summary { border-bottom:1px solid var(--border); }
     <div class="card"><span class="pill">Phase 5 · 1 session</span><h3>Meta-review</h3>With identities revealed, one agent judges each producer's strengths and weaknesses, backed by a harness-built scoreboard → <code>review.md</code>.</div>
   </div>
   <div class="callout"><b>Runs pause after blind review.</b> <code>dr run</code> stops once research and review are done, so you can bring in reports from the vendor apps (<code>dr pull</code> finds them, or <code>dr import FILE</code>) before reassessment. Continue with <code>dr run &lt;id&gt; --continue</code>. <a href="#quickstart">See the steps →</a></div>
-  <div class="callout info"><b>Research done elsewhere?</b> <code>dr import</code> adds it as one more anonymous report. Every agent reviews it (unless you pass <code>--no-review</code>), rules on it in reassessment, and uses it in synthesis. It isn't an agent, so it adds no reviewer, reassessor or synthesizer sessions. <a href="#flow">Try it in the flow →</a> · <a href="#vendors">Import Gemini, ChatGPT or Claude app reports →</a></div>
+  <div class="callout info"><b>Research done elsewhere?</b> <code>dr import</code> adds it as one more anonymous report. Every agent reviews it (unless you pass <code>--no-review</code>), rules on it in reassessment, and uses it in synthesis. It isn't an agent, so it adds no reviewer, reassessor or synthesizer sessions. Markdown, text, HTML, <code>.docx</code> and PDF are converted on import; the original is kept in the ledger. <a href="#flow">Try it in the flow →</a> · <a href="#vendors">Import Gemini, ChatGPT or Claude app reports →</a></div>
   <h2>Why it's built this way</h2>
   <div class="grid">
     <div class="card"><h3>Independence</h3>Each session is a new, non-interactive process without conversation continuity. This reduces carryover bias; writing style can still suggest authorship.</div>
@@ -684,7 +684,7 @@ strong or weak work, in what ways, and what that means for the next run.
 <!-- ============================================================ quickstart -->
 <section class="view" id="v-quickstart">
   <h1>Quickstart</h1>
-  <p class="lead">You need Python 3.11+ with nothing to install, the agent CLIs on your <code>PATH</code> and logged in, and this repo checked out.</p>
+  <p class="lead">You need Python 3.11+ (no Python packages to install), the agent CLIs you configure on your <code>PATH</code> and logged in, git, and this repo checked out. To import PDFs you need <code>pdftotext</code> (poppler-utils); <code>pandoc</code> is recommended for <code>.docx</code>. <code>bin/dr doctor</code> checks all of them against <code>dependencies.toml</code> and prints install hints from the vendors' pages; <code>dr run</code> checks the agent CLIs before dispatching, so a missing tool never uses an attempt.</p>
   <ol class="steps">
     <li><h3>Check what each tool offers</h3>
       Lists each agent's configured model plus the models and thinking levels it can use.
@@ -968,7 +968,8 @@ extra_args = ["-s", "workspace-write", ...]</pre>
     <tr><th>Execution</th><td>command line (prompt removed), exit code, session or thread ID, token and cost usage, error, raw log path</td></tr>
     <tr><th>Lineage</th><td>artifact ID, subject (the report a review is about), input artifact IDs</td></tr>
     <tr><th>Anonymity</th><td>the redactions applied to the output</td></tr>
-    <tr><th>Imports</th><td><code>framework = external</code>, your label as the model (source <code>import</code>), source path, sha256, <code>--no-review</code> if given; the unredacted original in <code>ledger/logs/&lt;run&gt;/&lt;R&gt;.original.md</code></td></tr>
+    <tr><th>Imports</th><td><code>framework = external</code>, your label as the model (source <code>import</code>), source path, the original's sha256, converter and version, images omitted, pages without text, <code>--no-review</code> if given. The original file (or, for a data-export pick, just that conversation) and the unredacted converted text are kept in <code>ledger/sources/&lt;run&gt;/&lt;R&gt;/</code>, so <code>ingest/</code> can be cleared</td></tr>
+    <tr><th>Environment</th><td>each <code>dr run</code> records the path and version of every program it will call (agent CLIs, git)</td></tr>
   </tbody></table></div>
 </section>
 
@@ -981,6 +982,8 @@ bin/publish-pages          copy this page to the GitHub Pages repo and push (run
 .githooks/                 post-commit / post-merge: publish when index.html changes
 config.toml                agents, timeouts, parallelism (defaults for new runs)
 rates.toml                 API list-price rates (shared format with usage-view; append-only)
+dependencies.toml          external programs the harness calls; checked by dr doctor
+ingest/                    staging for files to import; git-ignored, safe to clear
 index.html                 this page
 README.md · PLAN.md        usage · design and decisions
 VENDOR_DEEP_RESEARCH.md    vendor app vs CLI deep research, limits, import workflow
@@ -997,6 +1000,8 @@ harness/
   metrics.py               normalized per-attempt metrics, failure classes, usage-limit reset parsing
   rates.py                 rates.toml lookup, list-price estimates, dr rates check
   usage.py                 dr usage tables and ledger/reports/&lt;run&gt;/usage.md
+  documents.py             converts .md/.txt/.html/.docx/.pdf for import and pull; keeps the original
+  doctor.py                dependencies.toml checks, dr doctor, run preflight
   cli.py                   dr subcommands (new, import, pull, run, plan, usage, rates, backfill, status, reveal, …)
   pull.py                  find app deep-research reports: Downloads, data exports, Google Drive
 tests/
@@ -1007,6 +1012,7 @@ tests/
   test_pull.py              dr pull: folders, docx/html, ChatGPT/Claude exports, mocked Drive, dedupe
   test_smoke.py             smoke-script success and failure scenarios
   test_changes001.py        cost formula, limits, interrupts, plans, agy suffix, migration, backfill, rates check
+  test_changes002.py        converters, originals, duplicates, clearing ingest, preflight, dr doctor, drift guard
 runs/&lt;run-id&gt;/
   QUESTION.md  run.json  INDEX.md
   01-research/R-xxxxxxxx/     report.md  prompt.md  artifact.json
@@ -1016,6 +1022,7 @@ runs/&lt;run-id&gt;/
   05-meta-review/M-xxxxxxxx/  review.md  scoreboard.json   (identities revealed)
 ledger/
   ledger.sqlite            runs · tasks · attempts · plans · events
+  sources/&lt;run-id&gt;/&lt;R&gt;/     imported originals + unredacted converted text (part of the record)
   logs/&lt;run-id&gt;/          raw CLI stdout/stderr per attempt (&lt;id&gt;.&lt;n&gt;.stdout), unredacted imports (not anonymized)
   reports/&lt;run-id&gt;/usage.md  tokens and list-price cost (identities included; never under runs/)</pre>
 </section>
@@ -1098,6 +1105,7 @@ const CMDS = [
   ["dr backfill [RUN…]", "Attempt history, run plan and usage report for runs from before they existed; corrects stored failure reasons from the logs", ""],
   ["dr status RUN", "Show task progress for each phase, and the continue command when the run is paused", "--blind (hide agent names)"],
   ["dr reveal RUN", "Show the mapping from artifact to framework, version, model and effort", "--json · --out FILE"],
+  ["dr doctor", "Check the external programs the harness calls (dependencies.toml): path, version, and an install hint for anything missing. Never installs anything", "--feature run|pdf|docx|gdrive|dev · --json"],
   ["dr queue", "List questions waiting for their first agent session by ID, intake date and question, oldest first", ""],
   ["dr list", "List runs, with completed counts for each phase", ""],
   ["tests/offline.sh", "Run the full pipeline with 3 mock agents: pause after review, one dr import and one dr pull while paused, --continue through the meta-review (28 artifacts), with redaction, scrub and leak checks (identities and usage/cost), plus an interrupted run that resumes. No tokens", ""],
