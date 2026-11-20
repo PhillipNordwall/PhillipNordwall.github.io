@@ -111,7 +111,7 @@
     </main>
     <nav aria-label="Projects">
       <ul>
-        <li><a href="./deep_research/">deep|research</a></li>
+        <li><a href="./deep_research/">deep_research</a></li>
         <li><a href="./usage-view-web/">usage-view-web</a></li>
       </ul>
     </nav>
@@ -129,7 +129,7 @@
         <span>Total</span><span class="energy-value"></span>
         <div class="energy-track" aria-hidden="true"><div class="energy-bar" style="--bar-color: #8ddbd0"></div></div>
       </div>
-      <p id="mouse-repulsion">Mouse repulsion on (Q)</p>
+      <p id="mouse-repulsion">Mouse repulsion off (Q)</p>
       <pre id="physics-readout" aria-label="Physics values" hidden></pre>
     </section>
     <script>
@@ -158,7 +158,7 @@
       let maxY;
       let forceScale = 1;
       let pointer = null;
-      let mouseRepulsionEnabled = true;
+      let mouseRepulsionEnabled = false;
       let previousTime;
       let paused = false;
 
@@ -215,7 +215,7 @@
               ay += dy * factor;
             }
             // Compress large magnitudes while preserving the net force direction.
-            const gain = limit / (32 / forceScale + Math.hypot(ax, ay));
+            const gain = limit / (18 / forceScale + Math.hypot(ax, ay));
             point.px = point.x + ax * gain;
             point.py = point.y + ay * gain;
           }
@@ -276,7 +276,7 @@
         }
       }
 
-      function advance(seconds) {
+      function kick(seconds) {
         for (let i = 0; i < balls.length; i++) {
           for (let j = i + 1; j < balls.length; j++) {
             attract(balls[i], balls[j], seconds);
@@ -291,6 +291,12 @@
             ball.vx += dx * factor;
             ball.vy += dy * factor;
           }
+        }
+      }
+
+      function advance(seconds) {
+        kick(seconds / 2);
+        for (const ball of balls) {
           ball.x += ball.vx * seconds;
           ball.y += ball.vy * seconds;
           bounceOffWalls(ball);
@@ -301,6 +307,7 @@
             collide(balls[i], balls[j]);
           }
         }
+        kick(seconds / 2);
       }
 
       function attract(first, second, seconds) {
@@ -350,7 +357,7 @@
         return distance >= cutoff ? 1 / distance : (2 - distance / cutoff) / cutoff;
       }
 
-      function updateEnergyChart() {
+      function measureEnergy() {
         let kinetic = 0;
         let potential = 0;
         const radius = diameter / 2;
@@ -368,6 +375,10 @@
           }
         }
         potential *= forceScale;
+        return { kinetic, potential };
+      }
+
+      function updateEnergyChart({ kinetic, potential }) {
         const energies = [kinetic, potential, kinetic + potential];
         const maxMagnitude = Math.max(1, ...energies.map(Math.abs));
         energies.forEach((energy, index) => {
@@ -405,15 +416,39 @@
       function animate(now) {
         const elapsed = Math.min((now - (previousTime ?? now)) / 1000, 0.05);
         previousTime = now;
-        if (!paused) {
+        // Inputs (including a moving cursor) have already changed the energy here.
+        // Conserve this frame's starting energy while its external field is fixed.
+        let energy = measureEnergy();
+        if (!paused && elapsed > 0) {
+          const target = energy.kinetic + energy.potential;
+          const start = balls.map(({ x, y, vx, vy }) => ({ x, y, vx, vy }));
           const steps = Math.ceil(elapsed * 240);
           for (let step = 0; step < steps; step++) {
             advance(elapsed / steps);
           }
+          energy = measureEnergy();
+          const requiredKinetic = target - energy.potential;
+          if (requiredKinetic >= 0 && energy.kinetic > 0) {
+            const factor = Math.sqrt(requiredKinetic / energy.kinetic);
+            energy.kinetic = 0;
+            for (const ball of balls) {
+              ball.vx *= factor;
+              ball.vy *= factor;
+              energy.kinetic += (ball.vx ** 2 + ball.vy ** 2) / 2;
+            }
+          } else if (requiredKinetic !== energy.kinetic) {
+            // A contact correction can place a nearly resting system above its
+            // energy budget. Reflect the rejected move at its starting state.
+            balls.forEach((ball, i) => {
+              const { x, y, vx, vy } = start[i];
+              Object.assign(ball, { x, y, vx: -vx, vy: -vy });
+            });
+            energy = measureEnergy();
+          }
           render();
         }
         drawField();
-        updateEnergyChart();
+        updateEnergyChart(energy);
         if (!readout.hidden) updateReadout();
         requestAnimationFrame(animate);
       }
