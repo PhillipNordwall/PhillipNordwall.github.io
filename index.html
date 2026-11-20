@@ -37,15 +37,63 @@
         color: inherit;
       }
 
-      #physics-readout {
+      #physics-panel {
         position: fixed;
-        top: 0;
-        right: 0;
-        margin: 0;
+        top: 0.5rem;
+        right: 0.5rem;
+        box-sizing: border-box;
+        width: min(17rem, 58vw);
         padding: 0.75rem;
-        background: #192b45;
+        border: 1px solid #657893;
+        border-radius: 0.5rem;
+        background: #192b45f5;
         color: #fff;
+        font: 0.8rem system-ui, sans-serif;
         pointer-events: none;
+      }
+
+      #physics-panel h2 {
+        margin: 0 0 0.5rem;
+        font-size: 0.95rem;
+      }
+
+      .energy-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 0.15rem 0.5rem;
+        margin-bottom: 0.45rem;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .energy-track {
+        grid-column: 1 / -1;
+        position: relative;
+        height: 0.45rem;
+        background: #304762;
+      }
+
+      .energy-track::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 50%;
+        border-left: 1px solid #fff;
+      }
+
+      .energy-bar {
+        position: absolute;
+        height: 100%;
+        background: var(--bar-color);
+      }
+
+      #mouse-repulsion, #physics-readout {
+        margin: 0.65rem 0 0;
+      }
+
+      #physics-readout {
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
       }
     </style>
   </head>
@@ -57,10 +105,35 @@
         <li><a href="./usage-view-web/">usage-view-web</a></li>
       </ul>
     </nav>
-    <pre id="physics-readout" aria-label="Physics values" hidden></pre>
+    <section id="physics-panel" aria-labelledby="energy-title">
+      <h2 id="energy-title">Energy</h2>
+      <div id="kinetic-energy" class="energy-row">
+        <span>Kinetic</span><span class="energy-value"></span>
+        <div class="energy-track" aria-hidden="true"><div class="energy-bar" style="--bar-color: #ffd166"></div></div>
+      </div>
+      <div id="potential-energy" class="energy-row">
+        <span>Potential</span><span class="energy-value"></span>
+        <div class="energy-track" aria-hidden="true"><div class="energy-bar" style="--bar-color: #ff9eb5"></div></div>
+      </div>
+      <div id="total-energy" class="energy-row">
+        <span>Total</span><span class="energy-value"></span>
+        <div class="energy-track" aria-hidden="true"><div class="energy-bar" style="--bar-color: #8ddbd0"></div></div>
+      </div>
+      <p id="mouse-repulsion">Mouse repulsion on (Q)</p>
+      <pre id="physics-readout" aria-label="Physics values" hidden></pre>
+    </section>
     <script>
       const playfield = document.querySelector('#playfield');
       const readout = document.querySelector('#physics-readout');
+      const mouseRepulsionStatus = document.querySelector('#mouse-repulsion');
+      const energyRows = Array.from(document.querySelectorAll('.energy-row'), (row) => ({
+        value: row.querySelector('.energy-value'),
+        bar: row.querySelector('.energy-bar'),
+      }));
+      const energyFormat = new Intl.NumberFormat(undefined, {
+        notation: 'compact',
+        maximumSignificantDigits: 4,
+      });
       const initialBallCount = 24;
       const initialSpeed = 225;
       const attraction = 96000;
@@ -71,6 +144,7 @@
       let maxY;
       let forceScale = 1;
       let pointer = null;
+      let mouseRepulsionEnabled = true;
       let previousTime;
       let paused = false;
 
@@ -132,7 +206,7 @@
         }
 
         for (const ball of balls) {
-          if (pointer) {
+          if (mouseRepulsionEnabled && pointer) {
             const dx = ball.x + diameter / 2 - pointer.x;
             const dy = ball.y + diameter / 2 - pointer.y;
             const distance = Math.hypot(dx, dy);
@@ -202,6 +276,41 @@
         }
       }
 
+      function potentialFactor(distance, cutoff) {
+        // Integrate the capped inverse-square force with zero potential at infinity.
+        return distance >= cutoff ? 1 / distance : (2 - distance / cutoff) / cutoff;
+      }
+
+      function updateEnergyChart() {
+        let kinetic = 0;
+        let potential = 0;
+        const radius = diameter / 2;
+        for (let i = 0; i < balls.length; i++) {
+          const ball = balls[i];
+          kinetic += (ball.vx ** 2 + ball.vy ** 2) / 2;
+          if (mouseRepulsionEnabled && pointer) {
+            const distance = Math.hypot(ball.x + radius - pointer.x, ball.y + radius - pointer.y);
+            potential += repulsion * potentialFactor(distance, radius);
+          }
+          for (let j = i + 1; j < balls.length; j++) {
+            const other = balls[j];
+            const distance = Math.hypot(other.x - ball.x, other.y - ball.y);
+            potential -= attraction * potentialFactor(distance, diameter);
+          }
+        }
+        potential *= forceScale;
+        const energies = [kinetic, potential, kinetic + potential];
+        const maxMagnitude = Math.max(1, ...energies.map(Math.abs));
+        energies.forEach((energy, index) => {
+          const { value, bar } = energyRows[index];
+          const label = energyFormat.format(energy);
+          if (value.textContent !== label) value.textContent = label;
+          const width = 50 * energy / maxMagnitude;
+          bar.style.left = `${50 + Math.min(0, width)}%`;
+          bar.style.width = `${Math.abs(width)}%`;
+        });
+      }
+
       function updateReadout() {
         let minSpeed = Infinity;
         let maxSpeed = 0;
@@ -217,7 +326,7 @@
           `Balls       ${balls.length}`,
           `Force scale ${forceScale.toFixed(2)}×`,
           `Attraction  ${(forceScale * attraction).toFixed(0)}`,
-          `Repulsion   ${(forceScale * repulsion).toFixed(0)}`,
+          `Repulsion   ${mouseRepulsionEnabled ? (forceScale * repulsion).toFixed(0) : 'Off'}`,
           `Speed range ${speedRange}`,
           `Animation   ${paused ? 'Paused' : 'Running'}`,
         ].join('\n');
@@ -234,6 +343,7 @@
           }
           render();
         }
+        updateEnergyChart();
         if (!readout.hidden) updateReadout();
         requestAnimationFrame(animate);
       }
@@ -251,6 +361,10 @@
           readout.hidden = false;
         }
         if (event.ctrlKey || event.metaKey || event.altKey) return;
+        if (event.key.toLowerCase() === 'q' && !event.repeat) {
+          mouseRepulsionEnabled = !mouseRepulsionEnabled;
+          mouseRepulsionStatus.textContent = `Mouse repulsion ${mouseRepulsionEnabled ? 'on' : 'off'} (Q)`;
+        }
         if (event.key === ' ') {
           event.preventDefault();
           if (!event.repeat) {
