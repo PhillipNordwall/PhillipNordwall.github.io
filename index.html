@@ -152,6 +152,8 @@
       const initialSpeed = 225;
       const attraction = 96000;
       const repulsion = 192000;
+      // Each ball has unit mass. Its (x, y) is the top-left corner in CSS pixels,
+      // so forces measured from the cursor or grid use (x + radius, y + radius).
       const balls = [];
       let diameter;
       let maxX;
@@ -180,13 +182,15 @@
         brush.strokeStyle = 'rgba(135, 190, 218, 0.38)';
         spacing = Math.max(28, Math.ceil(Math.sqrt(width * height / 1800)));
         // Extend past the viewport so displaced lines still reach the edges.
+        // Sample the field at fixed (x, y) each frame. Only (px, py) bends with it.
         grid = Array.from({ length: Math.ceil(height / spacing) + 3 }, (_, row) =>
           Array.from({ length: Math.ceil(width / spacing) + 3 }, (_, col) => ({
             x: (col - 1) * spacing, y: (row - 1) * spacing, px: 0, py: 0,
           })));
       }
 
-      // Multiply the displacement vector by this factor to get acceleration.
+      // Divide by distance once for direction and twice for inverse-square strength.
+      // The cutoff caps the strength near a source. potentialFactor integrates this same law.
       function fieldFactor(dx, dy, strength, cutoff) {
         const squared = dx * dx + dy * dy;
         return squared === 0 ? 0 : strength / (Math.sqrt(squared) * Math.max(squared, cutoff * cutoff));
@@ -295,6 +299,8 @@
       }
 
       function advance(seconds) {
+        // Velocity Verlet samples acceleration twice, at the starting positions
+        // and again after movement and contact resolution, giving each half a step.
         kick(seconds / 2);
         for (const ball of balls) {
           ball.x += ball.vx * seconds;
@@ -429,6 +435,8 @@
           energy = measureEnergy();
           const requiredKinetic = target - energy.potential;
           if (requiredKinetic >= 0 && energy.kinetic > 0) {
+            // Kinetic energy scales with speed squared. One shared multiplier
+            // corrects the energy drift while preserving relative speeds and directions.
             const factor = Math.sqrt(requiredKinetic / energy.kinetic);
             energy.kinetic = 0;
             for (const ball of balls) {
