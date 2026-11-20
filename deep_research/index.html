@@ -194,6 +194,7 @@ details.rubric[open] summary { border-bottom:1px solid var(--border); }
       <a href="#phases">Phase guide</a>
       <a href="#rubrics">Rubrics</a>
       <a href="#quickstart">Quickstart</a>
+      <a href="#vendors">Vendor research</a>
       <a href="#commands">Commands</a>
       <a href="#config">Configuration</a>
       <a href="#anonymity">Anonymity &amp; provenance</a>
@@ -208,17 +209,19 @@ details.rubric[open] summary { border-bottom:1px solid var(--border); }
 <section class="view" id="v-overview">
   <span class="eyebrow">A field guide to evidence you can audit</span>
   <h1 class="hero-title">One question.<br>Many perspectives.<br><span>Evidence under scrutiny.</span></h1>
-  <p class="lead">The harness sends one research question to several agent CLIs (<code>agy</code>, <code>codex</code>, <code>claude</code>). They research it independently, review each other's reports without knowing who wrote them, reassess with every review in hand, and each writes a final synthesis. Each step is committed to git, and the ledger records which framework and model produced each artifact. Models never see that information.</p>
+  <p class="lead">The harness sends one research question to several agent CLIs (<code>agy</code>, <code>codex</code>, <code>claude</code>). They research it independently, review each other's reports without knowing who wrote them, reassess with every review in hand, and each writes a final synthesis. A closing meta-review then reveals who wrote what and judges the producers. Each step is committed to git, and the ledger records which framework and model produced each artifact. Models never see that information.</p>
   <div class="hero-actions"><a class="btn primary" href="#quickstart">Start a research run ↗</a><a class="btn" href="#flow">Explore the interactive flow</a><a class="btn" href="#rubrics">Inspect the rubrics</a></div>
-  <div class="stat-strip"><div><b>5</b><span>phases, including intake</span></div><div><b>18</b><span>fresh sessions with 3 agents</span></div><div><b>7</b><span>scored review dimensions</span></div><div><b>0</b><span>dependencies for this guide</span></div></div>
+  <div class="stat-strip"><div><b>6</b><span>phases, including intake</span></div><div><b>19</b><span>fresh sessions with 3 agents</span></div><div><b>7</b><span>scored review dimensions</span></div><div><b>0</b><span>dependencies for this guide</span></div></div>
   <div class="grid" style="margin-top:22px">
     <div class="card"><span class="pill">Phase 0</span><h3>Intake</h3>The question and its scope go into <code>QUESTION.md</code> and the ledger.</div>
     <div class="card"><span class="pill">Phase 1 · N sessions</span><h3>Research</h3>Each agent writes an independent, cited report.</div>
     <div class="card"><span class="pill">Phase 2 · N × reports</span><h3>Blind review</h3>Every agent reviews every report, one fresh session per review, including its own report without knowing it.</div>
     <div class="card"><span class="pill">Phase 3 · N sessions</span><h3>Reassessment</h3>Each agent reads all the reports and reviews, then rules on each report finding by finding.</div>
     <div class="card"><span class="pill">Phase 4 · N sessions</span><h3>Synthesis</h3>Each agent combines all the reassessments into one final report.</div>
+    <div class="card"><span class="pill">Phase 5 · 1 session</span><h3>Meta-review</h3>With identities revealed, one agent judges each producer's strengths and weaknesses, backed by a harness-built scoreboard → <code>review.md</code>.</div>
   </div>
-  <div class="callout info"><b>Research done elsewhere?</b> <code>dr import</code> adds it as one more anonymous report. Every agent reviews it (unless you pass <code>--no-review</code>), rules on it in reassessment, and uses it in synthesis. It isn't an agent, so it adds no reviewer, reassessor or synthesizer sessions. <a href="#flow">Try it in the flow →</a></div>
+  <div class="callout"><b>Runs pause after blind review.</b> <code>dr run</code> stops once research and review are done, so you can bring in reports from the vendor apps (<code>dr pull</code> finds them, or <code>dr import FILE</code>) before reassessment. Continue with <code>dr run &lt;id&gt; --continue</code>. <a href="#quickstart">See the steps →</a></div>
+  <div class="callout info"><b>Research done elsewhere?</b> <code>dr import</code> adds it as one more anonymous report. Every agent reviews it (unless you pass <code>--no-review</code>), rules on it in reassessment, and uses it in synthesis. It isn't an agent, so it adds no reviewer, reassessor or synthesizer sessions. <a href="#flow">Try it in the flow →</a> · <a href="#vendors">Import Gemini, ChatGPT or Claude app reports →</a></div>
   <h2>Why it's built this way</h2>
   <div class="grid">
     <div class="card"><h3>Independence</h3>Each session is a new, non-interactive process without conversation continuity. This reduces carryover bias; writing style can still suggest authorship.</div>
@@ -254,12 +257,14 @@ details.rubric[open] summary { border-bottom:1px solid var(--border); }
     <span><i class="f"></i> reference input (original reports, given to synthesis for sources)</span>
     <span>grey nodes = anonymous view (what models and artifacts show)</span>
     <span><i class="imp"></i> imported report (<code>dr import</code>, no session of its own)</span>
+    <span style="color:var(--warn)">┆ default pause after review: <code>dr pull</code> / <code>dr import</code> app reports, then <code>dr run &lt;id&gt; --continue</code></span>
+    <span>Meta-review: the one node that sees identities</span>
   </div>
   <div class="card detail" id="detail"></div>
   <div class="phase-cards" id="phaseCards"></div>
 </section>
 
-<section class="view" id="v-phases"><span class="eyebrow">The method · phase by phase</span><h1>From question to defensible answer</h1><p class="lead">Each stage has a different job. Select a phase to inspect its inputs, outputs, purpose and working contract.</p><div class="chapter-nav" aria-label="Select a phase"><button type="button" data-phase="0" aria-pressed="true" aria-controls="phase-0">00 · Intake</button><button type="button" data-phase="1" aria-pressed="false" aria-controls="phase-1">01 · Research</button><button type="button" data-phase="2" aria-pressed="false" aria-controls="phase-2">02 · Blind review</button><button type="button" data-phase="3" aria-pressed="false" aria-controls="phase-3">03 · Reassessment</button><button type="button" data-phase="4" aria-pressed="false" aria-controls="phase-4">04 · Synthesis</button></div><article class="card phase-panel" id="phase-0" aria-labelledby="phase-title-0" ><span class="pill">Phase 00</span><h2 id="phase-title-0">Intake</h2><p class="lead">Define the decision before gathering evidence.</p><p>A precise question keeps reviewers focused on the same audience, timeframe and decision. Scope reduces irrelevant research and makes coverage gaps assessable.</p><div class="grid"><div><h3>Reads</h3><p>Your question and optional scope notes.</p></div><div><h3>Produces</h3><p><code>QUESTION.md, run.json, INDEX.md and a ledger run record.</code></p></div></div><h3>What good work looks like</h3><ul><li>State what decision this research should support.</li><li>Specify audience, geography, timeframe and exclusions.</li><li>Import outside research now or before reassessment begins.</li></ul><div class="callout info">No agent session. The harness records intake and commits it when commits are enabled.</div><a href="#rubrics">Read the evaluation criteria and prompt contracts →</a></article><article class="card phase-panel" id="phase-1" aria-labelledby="phase-title-1" hidden><span class="pill">Phase 01</span><h2 id="phase-title-1">Research</h2><p class="lead">Build independent evidence bases.</p><p>Independent searches can uncover different sources and counterarguments. Shared mistakes can still occur, so later phases must check whether sources are truly independent.</p><div class="grid"><div><h3>Reads</h3><p>The question and scope only; no other reports.</p></div><div><h3>Produces</h3><p><code>01-research/R-*/report.md; one report per agent.</code></p></div></div><h3>What good work looks like</h3><ul><li>Decompose into 3–8 sub-questions.</li><li>Seek two independent sources for important claims, or mark single-source.</li><li>Search for counter-evidence; label facts, consensus, contested claims and inference.</li></ul><div class="callout info">N fresh sessions. Each report has eight required sections and numbered findings F1, F2, …</div><a href="#rubrics">Read the evaluation criteria and prompt contracts →</a></article><article class="card phase-panel" id="phase-2" aria-labelledby="phase-title-2" hidden><span class="pill">Phase 02</span><h2 id="phase-title-2">Blind review</h2><p class="lead">Test the claims against their sources.</p><p>An articulate report can cite real sources that do not support its claims. Blind review makes evidence and reasoning the basis for criticism and includes independent self-review.</p><div class="grid"><div><h3>Reads</h3><p>The question and exactly one anonymous report per session.</p></div><div><h3>Produces</h3><p><code>02-review/V-*/review.md; a separate review for each agent × reviewed report.</code></p></div></div><h3>What good work looks like</h3><ul><li>Verify at least 8 load-bearing claims, or all if fewer.</li><li>Independently spot-check at least 3 key claims.</li><li>Score seven dimensions, identify specific errors and assign a disposition to every finding.</li></ul><div class="callout info">N × (N + K) sessions, where K is the number of imported reports eligible for review. Imports with --no-review remain in later phases.</div><a href="#rubrics">Read the evaluation criteria and prompt contracts →</a></article><article class="card phase-panel" id="phase-3" aria-labelledby="phase-title-3" hidden><span class="pill">Phase 03</span><h2 id="phase-title-3">Reassessment</h2><p class="lead">Adjudicate disagreements on evidence.</p><p>Reviewers can be wrong. Reassessment separates refuted claims from unverified ones and examines common sources, conflicting verdicts and collective blind spots.</p><div class="grid"><div><h3>Reads</h3><p>All completed reports and reviews, grouped by report in a manifest.</p></div><div><h3>Produces</h3><p><code>03-reassessment/A-*/reassess_&lt;R-id&gt;.md for every report, plus overview.md.</code></p></div></div><h3>What good work looks like</h3><ul><li>Read every report and review.</li><li>Re-check important disputed claims yourself.</li><li>Rule on every finding and revise confidence; compare reliability across reports.</li></ul><div class="callout info">N sessions. Five finding rulings and a comparative reliability score of 1–5. Do not average reviewer opinions.</div><a href="#rubrics">Read the evaluation criteria and prompt contracts →</a></article><article class="card phase-panel" id="phase-4" aria-labelledby="phase-title-4" hidden><span class="pill">Phase 04</span><h2 id="phase-title-4">Synthesis</h2><p class="lead">Write a coherent, traceable answer.</p><p>Organizing by theme turns the evidence into a useful answer while retaining its uncertainty and audit trail. There are N final syntheses, rather than one automatically chosen winner.</p><div class="grid"><div><h3>Reads</h3><p>All reassessments as primary input, plus original reports for citations and nuance.</p></div><div><h3>Produces</h3><p><code>04-synthesis/S-*/synthesis.md; one final report per agent.</code></p></div></div><h3>What good work looks like</h3><ul><li>Merge duplicate findings and use a unified bibliography.</li><li>Resolve conflicting adjudications with reasoning and evidence.</li><li>Keep unresolved questions, refuted claims and R-/A- provenance visible.</li></ul><div class="callout info">N sessions. Ten required sections, final High/Medium/Low confidence, and a machine-readable summary.</div><a href="#rubrics">Read the evaluation criteria and prompt contracts →</a></article><h2>What happens when a session fails?</h2><p>A nonzero CLI exit or a CLI-reported error fails the task even if it wrote a long response or output file. Missing or undersized deliverables also fail. The harness records provenance and logs; rerunning skips completed tasks and retries failures up to <code>max_attempts</code>.</p><pre>bin/dr run &lt;run-id&gt;
+<section class="view" id="v-phases"><span class="eyebrow">The method · phase by phase</span><h1>From question to defensible answer</h1><p class="lead">Each stage has a different job. Select a phase to inspect its inputs, outputs, purpose and working contract.</p><div class="chapter-nav" aria-label="Select a phase"><button type="button" data-phase="0" aria-pressed="true" aria-controls="phase-0">00 · Intake</button><button type="button" data-phase="1" aria-pressed="false" aria-controls="phase-1">01 · Research</button><button type="button" data-phase="2" aria-pressed="false" aria-controls="phase-2">02 · Blind review</button><button type="button" data-phase="3" aria-pressed="false" aria-controls="phase-3">03 · Reassessment</button><button type="button" data-phase="4" aria-pressed="false" aria-controls="phase-4">04 · Synthesis</button><button type="button" data-phase="5" aria-pressed="false" aria-controls="phase-5">05 · Meta-review</button></div><article class="card phase-panel" id="phase-0" aria-labelledby="phase-title-0" ><span class="pill">Phase 00</span><h2 id="phase-title-0">Intake</h2><p class="lead">Define the decision before gathering evidence.</p><p>A precise question keeps reviewers focused on the same audience, timeframe and decision. Scope reduces irrelevant research and makes coverage gaps assessable.</p><div class="grid"><div><h3>Reads</h3><p>Your question and optional scope notes.</p></div><div><h3>Produces</h3><p><code>QUESTION.md, run.json, INDEX.md and a ledger run record.</code></p></div></div><h3>What good work looks like</h3><ul><li>State what decision this research should support.</li><li>Specify audience, geography, timeframe and exclusions.</li><li>Import outside research now or before reassessment begins.</li></ul><div class="callout info">No agent session. The harness records intake and commits it when commits are enabled.</div><a href="#rubrics">Read the evaluation criteria and prompt contracts →</a></article><article class="card phase-panel" id="phase-1" aria-labelledby="phase-title-1" hidden><span class="pill">Phase 01</span><h2 id="phase-title-1">Research</h2><p class="lead">Build independent evidence bases.</p><p>Independent searches can uncover different sources and counterarguments. Shared mistakes can still occur, so later phases must check whether sources are truly independent.</p><div class="grid"><div><h3>Reads</h3><p>The question and scope only; no other reports.</p></div><div><h3>Produces</h3><p><code>01-research/R-*/report.md; one report per agent.</code></p></div></div><h3>What good work looks like</h3><ul><li>Decompose into 3–8 sub-questions.</li><li>Seek two independent sources for important claims, or mark single-source.</li><li>Search for counter-evidence; label facts, consensus, contested claims and inference.</li></ul><div class="callout info">N fresh sessions. Each report has eight required sections and numbered findings F1, F2, …</div><a href="#rubrics">Read the evaluation criteria and prompt contracts →</a></article><article class="card phase-panel" id="phase-2" aria-labelledby="phase-title-2" hidden><span class="pill">Phase 02</span><h2 id="phase-title-2">Blind review</h2><p class="lead">Test the claims against their sources.</p><p>An articulate report can cite real sources that do not support its claims. Blind review makes evidence and reasoning the basis for criticism and includes independent self-review.</p><div class="grid"><div><h3>Reads</h3><p>The question and exactly one anonymous report per session.</p></div><div><h3>Produces</h3><p><code>02-review/V-*/review.md; a separate review for each agent × reviewed report.</code></p></div></div><h3>What good work looks like</h3><ul><li>Verify at least 8 load-bearing claims, or all if fewer.</li><li>Independently spot-check at least 3 key claims.</li><li>Score seven dimensions, identify specific errors and assign a disposition to every finding.</li></ul><div class="callout info">N × (N + K) sessions, where K is the number of imported reports eligible for review. Imports with --no-review remain in later phases.</div><div class="callout"><b>Default pause.</b> <code>dr run</code> stops here once every review is done, so you can add vendor app reports with <code>dr pull</code> or <code>dr import</code>. <code>dr run &lt;id&gt; --continue</code> reviews the imports, then moves on to reassessment.</div><a href="#rubrics">Read the evaluation criteria and prompt contracts →</a></article><article class="card phase-panel" id="phase-3" aria-labelledby="phase-title-3" hidden><span class="pill">Phase 03</span><h2 id="phase-title-3">Reassessment</h2><p class="lead">Adjudicate disagreements on evidence.</p><p>Reviewers can be wrong. Reassessment separates refuted claims from unverified ones and examines common sources, conflicting verdicts and collective blind spots.</p><div class="grid"><div><h3>Reads</h3><p>All completed reports and reviews, grouped by report in a manifest.</p></div><div><h3>Produces</h3><p><code>03-reassessment/A-*/reassess_&lt;R-id&gt;.md for every report, plus overview.md.</code></p></div></div><h3>What good work looks like</h3><ul><li>Read every report and review.</li><li>Re-check important disputed claims yourself.</li><li>Rule on every finding and revise confidence; compare reliability across reports.</li></ul><div class="callout info">N sessions. Five finding rulings and a comparative reliability score of 1–5. Do not average reviewer opinions.</div><a href="#rubrics">Read the evaluation criteria and prompt contracts →</a></article><article class="card phase-panel" id="phase-4" aria-labelledby="phase-title-4" hidden><span class="pill">Phase 04</span><h2 id="phase-title-4">Synthesis</h2><p class="lead">Write a coherent, traceable answer.</p><p>Organizing by theme turns the evidence into a useful answer while retaining its uncertainty and audit trail. There are N final syntheses, rather than one automatically chosen winner.</p><div class="grid"><div><h3>Reads</h3><p>All reassessments as primary input, plus original reports for citations and nuance.</p></div><div><h3>Produces</h3><p><code>04-synthesis/S-*/synthesis.md; one final report per agent.</code></p></div></div><h3>What good work looks like</h3><ul><li>Merge duplicate findings and use a unified bibliography.</li><li>Resolve conflicting adjudications with reasoning and evidence.</li><li>Keep unresolved questions, refuted claims and R-/A- provenance visible.</li></ul><div class="callout info">N sessions. Ten required sections, final High/Medium/Low confidence, and a machine-readable summary.</div><a href="#rubrics">Read the evaluation criteria and prompt contracts →</a></article><article class="card phase-panel" id="phase-5" aria-labelledby="phase-title-5" hidden><span class="pill">Phase 05</span><h2 id="phase-title-5">Meta-review</h2><p class="lead">Judge the producers, with names.</p><p>Blindness protected the research, reviews and syntheses. Once they exist, the useful question is who did good work, in which role, and what to change next time. This is the only phase that sees identities. Its output never feeds another phase.</p><div class="grid"><div><h3>Reads</h3><p>Every report, review, reassessment and synthesis, each labelled with its producer, plus <code>IDENTITIES.md</code> and <code>scoreboard.json</code> built by the harness.</p></div><div><h3>Produces</h3><p><code>05-meta-review/M-*/review.md and scoreboard.json; one session by meta_review_agent.</code></p></div></div><h3>What good work looks like</h3><ul><li>Rate each producer's strengths and weaknesses separately as researcher, reviewer, reassessor and synthesizer, citing artifact IDs.</li><li>Quantify self-review bias: score given to its own report vs peers' scores.</li><li>Compare imported app reports with the same vendor's CLI agent.</li><li>Name process weaknesses and concrete changes for the next run.</li></ul><div class="callout info">1 session. Ten sections and a JSON summary. The harness appends the identity map (Appendix A) and scoreboard (Appendix B) verbatim, so names and numbers are never model-generated. The meta-reviewer is also a producer; rotate <code>meta_review_agent</code> to vary who judges.</div><a href="#rubrics">Read the meta-review prompt contract →</a></article><h2>What happens when a session fails?</h2><p>A nonzero CLI exit or a CLI-reported error fails the task even if it wrote a long response or output file. Missing or undersized deliverables also fail. The harness records provenance and logs; rerunning skips completed tasks and retries failures up to <code>max_attempts</code>.</p><pre>bin/dr run &lt;run-id&gt;
 # Retry even after the attempt limit:
 bin/dr run &lt;run-id&gt; --retry-failed
 # Continue past an incomplete phase with at least two successful inputs:
@@ -567,6 +572,92 @@ adjudicators. You have **all the reassessments** (your primary input) and the
 ~~~
 
 {{COMMON}}
+</pre></div></details><details class="rubric"><summary>Meta-review · producers, self-review bias &amp; ten sections</summary><div class="rubric-body"><p>Source: <a href="https://github.com/PhillipNordwall/shared_deep_research/blob/main/prompts/meta-review.md"><code>prompts/meta-review.md</code></a>. This phase replaces the common anonymity rules with its own operating rules.</p><pre class="prompt-source" data-source="meta-review"># Task: Meta-Review of a Multi-Source Deep Research Run (identities revealed)
+
+The blind part of this process is over. Several independent sources researched the
+question below. Each was an AI agent configuration or an imported report produced
+elsewhere, such as a vendor&#x27;s deep-research app. Their reports were blind
+peer-reviewed by every agent, reassessed, and synthesized. You now know **who
+produced every artifact**. Your job is not to answer the research question again.
+It is to judge **the producers and the process**: which sources and models did
+strong or weak work, in what ways, and what that means for the next run.
+
+## Research question (context only)
+{{QUESTION}}
+
+## Scope / context notes
+{{SCOPE}}
+
+## Inputs
+- `inputs/IDENTITIES.md`: **ground truth** from the harness. It maps every artifact ID
+  to its producer (agent · framework version · model · effort, or an imported label)
+  and has a scoreboard: review scores parsed from each review&#x27;s JSON summary,
+  self-review vs peer scores, reassessment scores and rulings, sessions, failures and
+  minutes per agent. Use these numbers and identities exactly. Don&#x27;t recompute or
+  reattribute them. &quot;n/a&quot; means the artifact had no parseable value.
+- `inputs/scoreboard.json`: the same data, machine-readable.
+- `inputs/reports/`, `inputs/reviews/`, `inputs/reassessments/&lt;A-ID&gt;/`,
+  `inputs/syntheses/`: every artifact of the run, each annotated with its producer in
+  `inputs/MANIFEST.md` and in the review headers.
+- `inputs/question.md`
+
+{{INPUT_MANIFEST}}
+
+## How to judge
+- **Evidence from the artifacts, not reputation.** Base every strength or weakness on
+  what the artifacts show: verified vs. contradicted claims, reviewer findings that
+  reassessors upheld or overturned, coverage gaps, calibration. Cite artifact IDs
+  (e.g. `R-1a2b3c4d F3`, `V-…`, `A-…`). Don&#x27;t rely on general beliefs about vendors.
+- **Separate the roles.** A model can be a strong researcher but a lenient reviewer,
+  or a careful reassessor but a weak synthesizer. Judge each role on its own.
+- **Self-review bias.** Every agent reviewed its own report blind. Compare self-review
+  scores with peer scores (scoreboard) and say whether any agent was systematically
+  harder or softer on its own work, or on others&#x27;.
+- **Imported reports** (vendor apps or other outside work) didn&#x27;t follow the harness
+  template and didn&#x27;t take part in later phases. Judge their content against the same
+  standard, note where the template difference matters, and compare each one with the
+  same vendor&#x27;s CLI agent when both are present.
+- **Small samples.** One run is one data point per role. State conclusions with
+  appropriate confidence and don&#x27;t generalize beyond this question.
+- You may be one of the agents being judged. Apply the same evidence standard to every
+  producer, and flag any conclusion that rests mainly on your own judgment.
+- Don&#x27;t re-research the topic. Open a source only to settle a specific dispute that a
+  conclusion depends on, and say so.
+
+## Deliverable
+- `output/review.md`, with **exactly** these sections. Don&#x27;t reproduce the identity map
+  or scoreboard: the harness appends both verbatim after your text.
+
+~~~markdown
+# Meta-Review of Run {{RUN_ID}}
+## 1. Bottom Line                     (≤ 150 words: which producers did the most reliable work, and the run&#x27;s biggest weakness)
+## 2. Producers at a Glance           (table: producer · role(s) · strengths · weaknesses · overall 1–5)
+## 3. Research Reports by Producer    (per report: who, what held up, what was refuted, unique contributions, calibration)
+## 4. Reviewing Quality by Producer   (rigor, leniency/severity vs peers, self-review bias, reviews later overturned in reassessment)
+## 5. Reassessment &amp; Synthesis by Producer (agreement between reassessors/syntheses, who resolved conflicts well, who smoothed them over)
+## 6. Imported vs Agent Research      (only if imports exist: app/outside reports vs CLI agents, same-vendor comparisons; else &quot;No imported reports.&quot;)
+## 7. Cross-Cutting Strengths         (what the process as a whole did well)
+## 8. Cross-Cutting Weaknesses        (shared blind spots, shared sources, failures/retries, time cost, anonymity leaks noticed)
+## 9. Recommendations for the Next Run (which agents/models/effort to keep or change, what to import, prompt or process changes)
+## 10. Machine-readable Summary
+```json
+{&quot;run&quot;: &quot;{{RUN_ID}}&quot;, &quot;producers&quot;: [{&quot;producer&quot;: &quot;&quot;, &quot;roles&quot;: [&quot;research&quot;], &quot;overall&quot;: 0, &quot;strengths&quot;: [&quot;&quot;], &quot;weaknesses&quot;: [&quot;&quot;]}],
+ &quot;best_research&quot;: &quot;&quot;, &quot;most_rigorous_reviewer&quot;: &quot;&quot;, &quot;self_review_bias&quot;: [{&quot;producer&quot;: &quot;&quot;, &quot;delta_vs_peers&quot;: 0}],
+ &quot;process_weaknesses&quot;: [&quot;&quot;], &quot;recommendations&quot;: [&quot;&quot;]}
+```
+~~~
+
+## Operating rules
+- **Workspace.** Inputs are under `inputs/`. Write only `output/review.md`. Don&#x27;t
+  modify `inputs/` or look outside this directory.
+- **Identities are allowed here.** Name producers exactly as `inputs/IDENTITIES.md`
+  does. This is the only phase where that&#x27;s permitted.
+- **Non-interactive.** No human is available. State assumptions and keep going.
+- **Honesty over polish.** Never invent scores, sources or events. If the inputs don&#x27;t
+  support a judgment, say so.
+- **Today&#x27;s date** is {{DATE}}.
+- **Finish** by making sure `output/review.md` exists and is complete, then reply with
+  one line: `DONE: output/review.md`.
 </pre></div></details><details class="rubric"><summary>Common rules · anonymity, honesty &amp; workspace</summary><div class="rubric-body"><p>Source: <a href="https://github.com/PhillipNordwall/shared_deep_research/blob/main/prompts/_common.md"><code>prompts/_common.md</code></a></p><pre class="prompt-source" data-source="_common">## Operating rules (apply to this whole task)
 
 - **Workspace.** You are working in an isolated directory. Inputs are under `inputs/`.
@@ -612,8 +703,8 @@ tests/smoke.sh research,review</pre></li>
       <pre>bin/dr new "What is the current evidence on X for Y?" \
   --scope "Audience: engineering leads. Timeframe: 2023-present. Exclude vendor marketing."</pre>
       This prints the run ID, for example <code>2026-11-04-what-is-the-current-evidence-on-x</code>.</li>
-    <li><h3>Optional: add research done elsewhere</h3>
-      Reports from another tool or done offline join as anonymous <code>R-</code> reports. They're reviewed, reassessed and synthesized with the rest, and add no agent sessions of their own. Import before reassessment starts.
+    <li><h3>Optional: add research you already have</h3>
+      Reports from another tool or done offline join as anonymous <code>R-</code> reports. They're reviewed, reassessed and synthesized with the rest, and add no agent sessions of their own. Import before reassessment starts; the default pause after review (below) is the usual moment. For Gemini, ChatGPT and Claude app reports, see <a href="#vendors">Vendor research</a>.
       <pre>bin/dr import &lt;run-id&gt; offline-report.md --label vendor-deep-research
 <span class="c"># skip peer review, but still reassess + synthesize it:</span>
 bin/dr import &lt;run-id&gt; notes.md --no-review
@@ -622,17 +713,121 @@ bin/dr new "question" --import offline-report.md</pre></li>
     <li><h3>Choose a queued question</h3>
       Repeat intake for each question you want to save. This command lists them oldest first. Importing background research leaves a question queued.
       <pre>bin/dr queue</pre></li>
-    <li><h3>Start the question you picked</h3>
+    <li><h3>Start the question you picked: research + blind review, then pause</h3>
       Use any ID from the queue. Once a phase dispatches agent work, find the question with <code>bin/dr list</code> and resume it with the same ID.
-      A full run is 3N + N² sessions (18 with three agents), plus N reviews for each imported report, and can take hours. Run it detached.
+      By default <code>dr run</code> <b>stops after review</b> and prints the next commands. Re-running it while paused retries failures but never moves on.
       <pre>nohup bin/dr run &lt;run-id&gt; &gt; run.log 2&gt;&amp;1 &amp;
-bin/dr status &lt;run-id&gt; --blind</pre></li>
-    <li><h3>Read and reveal</h3>
-      Start with <code>runs/&lt;run-id&gt;/INDEX.md</code>, then the <code>04-synthesis</code> reports. Reveal the mapping only after you've read them.
-      <pre>bin/dr reveal &lt;run-id&gt;
+bin/dr status &lt;run-id&gt; --blind      <span class="c"># ends with "paused after 'review'" when phases 1–2 are done</span></pre></li>
+    <li><h3>While paused: pull in reports from the vendor apps</h3>
+      This is the window for Gemini, ChatGPT or Claude app deep research, or anything else done outside the harness. <code>dr pull</code> finds candidates in Downloads, data-export zips and (with <code>--gdrive</code>) Google Docs, then ranks them against the question. Imports are refused once reassessment starts. <a href="#vendors">What each app can and can't expose →</a>
+      <pre>bin/dr pull &lt;run-id&gt;                 <span class="c"># list candidates, best match first</span>
+bin/dr pull &lt;run-id&gt; --pick 1,2
+<span class="c"># or a specific file:</span>
+bin/dr import &lt;run-id&gt; chatgpt.md --label chatgpt-app-deep-research</pre></li>
+    <li><h3>Continue with the remaining phases</h3>
+      <code>--continue</code> first reviews any new imports, then runs reassessment, synthesis and the meta-review. A full run is 3N + N² + 1 sessions (19 with three agents), plus N reviews for each imported report, and can take hours.
+      <pre>nohup bin/dr run &lt;run-id&gt; --continue &gt; run.log 2&gt;&amp;1 &amp;
+<span class="c"># nothing to import? skip the pause from the start:</span>
+bin/dr run &lt;run-id&gt; --continue
+<span class="c"># or never pause: set pause_after = "" under [harness] in config.toml</span></pre></li>
+    <li><h3>Read, then see who wrote what</h3>
+      Start with <code>runs/&lt;run-id&gt;/INDEX.md</code>, then the <code>04-synthesis</code> reports. After reading them, open the meta-review. It names every producer and covers their strengths and weaknesses, self-review bias, and app vs CLI.
+      <pre>cat runs/&lt;run-id&gt;/05-meta-review/M-*/review.md
+bin/dr reveal &lt;run-id&gt;
 bin/dr reveal &lt;run-id&gt; --out mapping.json</pre></li>
   </ol>
   <div class="callout">If a session fails, run <code>bin/dr run &lt;run-id&gt;</code> again. Finished work is kept. To continue past an incomplete phase, add <code>--allow-partial</code>; at least two artifacts from the preceding phase must have succeeded. To retry tasks that have used up their attempts, add <code>--retry-failed</code>.</div>
+</section>
+
+<!-- ============================================================ vendors -->
+<section class="view" id="v-vendors">
+  <span class="eyebrow">Outside evidence · apps, CLIs and APIs</span>
+  <h1>Vendor deep research</h1>
+  <p class="lead">Google, OpenAI and Anthropic each sell a deep research product in their consumer apps. Those apps are not what the harness runs. The harness drives each vendor's <em>CLI</em> as an ordinary agent with web search and gives it the research prompt. The two paths differ in workflow, billing and output, so run both: the CLIs through the harness, the apps by hand. Then import the app reports so every agent reviews, reassesses and synthesizes them blind.</p>
+  <div class="callout"><b>Verified 2026-11-19.</b> These limits change often, and several vendors no longer publish exact counts. <span class="pill">official</span> marks a vendor page, <span class="pill">reported</span> a press or third-party figure. Check the in-app usage page before a batch. Sources are in <a href="https://github.com/PhillipNordwall/shared_deep_research/blob/main/VENDOR_DEEP_RESEARCH.md"><code>VENDOR_DEEP_RESEARCH.md</code></a>.</div>
+
+  <h2>The app products</h2>
+  <div class="table-scroll"><table>
+    <thead><tr><th></th><th>Gemini app · Deep Research</th><th>ChatGPT · deep research</th><th>Claude app · Research</th></tr></thead>
+    <tbody>
+      <tr><td><b>Plans</b></td><td>All, including no plan. Free use may be unavailable at peak demand.</td><td>Free/Go “Limited”, Plus “Expanded”, Pro “Maximum”</td><td>Paid only: Pro, Max, Ultra, Team, Enterprise</td></tr>
+      <tr><td><b>Monthly limit</b></td><td>No per-report count since May 2026. A compute pool refreshes every 5 h up to a weekly cap. Deep Research is a “High” cost feature. Plus 2×, Pro 4× standard, Ultra 5× or 20× Pro. <span class="pill">official</span></td><td><b>Its own counter</b>, which resets 30 days after first use. Counts are no longer published. The last published figures were ~25/mo Plus and ~250/mo Pro. <span class="pill">reported</span></td><td><b>No separate counter.</b> It uses the same 5 h + weekly limits as chat and uses them up faster. <span class="pill">official</span></td></tr>
+      <tr><td><b>Typical time</b></td><td>“Usually about 5–10 minutes”, longer for complex reports <span class="pill">official</span></td><td>5–30 min <span class="pill">reported</span></td><td>“Minutes” <span class="pill">official</span>. Mostly 5–15 min, up to 45 min. <span class="pill">reported</span></td></tr>
+      <tr><td><b>Export to Markdown</b></td><td>Canvas → Share &amp; export → Export to Docs, then File ▸ Download ▸ Markdown</td><td>Download as Markdown (also Word, PDF)</td><td>Copy the report and save it as <code>.md</code></td></tr>
+      <tr><td><b>Shares a pool with the harness CLI?</b></td><td>Yes, with <code>agy</code> (Google AI plan)</td><td><b>No.</b> Codex has its own 5 h + weekly windows.</td><td>Yes, with <code>claude</code> (shared across web, desktop and Claude Code)</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>CLI and API: is there a deep-research mode?</h2>
+  <div class="grid">
+    <div class="card"><span class="pill">agy 1.5.12</span><h3>Google</h3><p><b>CLI:</b> no research mode. <code>--mode plan</code> and <code>/planning</code> exist, and third-party Claude Code plugins add an <code>/agy:research</code> wrapper.</p><p><b>API:</b> the Gemini <i>Deep Research agent</i> (<code>deep-research-preview-04-2026</code>, <code>…-max-…</code>). It runs only on the Interactions API, as a background task you poll, and is billed per token on an API key, separately from the subscription.</p></div>
+    <div class="card"><span class="pill">codex 0.170.0</span><h3>OpenAI</h3><p><b>CLI:</b> no research mode. The harness runs <code>codex exec</code> with live web search.</p><p><b>API:</b> <code>o3-deep-research</code> <b>shut down on 2026-07-23</b> <span class="pill">official</span>. OpenAI now points to longer web research with the Responses API web-search tool.</p></div>
+    <div class="card"><span class="pill">claude 2.1.329</span><h3>Anthropic</h3><p><b>CLI:</b> no built-in command. Accounts can have Anthropic's <code>deep-research</code> <i>skill</i>, which coordinates parallel research subagents.</p><p><b>API:</b> no dedicated deep-research model or endpoint. The building blocks are the web-search tool and the Agent SDK.</p></div>
+  </div>
+
+  <h2>Can the harness find app runs by itself?</h2>
+  <p>Partly. None of the apps has an official API for your app conversations. Undocumented web endpoints exist but are brittle and conflict with the terms, so <code>dr pull</code> searches where reports land:</p>
+  <div class="table-scroll"><table>
+    <thead><tr><th></th><th>Official access to app results?</th><th>What <code>dr pull</code> uses</th></tr></thead>
+    <tbody>
+      <tr><td><b>ChatGPT</b></td><td>No. The API's conversations are API-created only.</td><td>Downloaded <code>.md</code>/<code>.docx</code>, or the <i>Export data</i> zip (<code>conversations.json</code>)</td></tr>
+      <tr><td><b>Gemini</b></td><td><b>Yes, indirectly:</b> <i>Export to Docs</i> → Drive API exports the Doc as Markdown</td><td><code>--gdrive</code> with <code>$DR_GDRIVE_TOKEN</code> or <code>gcloud auth login --enable-gdrive-access</code></td></tr>
+      <tr><td><b>Claude</b></td><td>No. There's no API for claude.ai chats.</td><td>Saved report, or the <i>Export data</i> zip</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>How the workflows differ</h2>
+  <div class="grid">
+    <div class="card"><h3>App deep research</h3><p>The vendor's own planner, browsing and report writer, run on the vendor's servers. You can close the tab. You can't choose the prompt template, model, effort, permissions or output structure. It records no session log or token usage.</p></div>
+    <div class="card"><h3>Harness CLI research</h3><p>A general agent following the research prompt: 3–8 sub-questions, two independent sources per key claim, counter-evidence, numbered findings, eight fixed sections. You pick the model and effort. The ledger records version, model, timings and usage. It's reproducible and auditable, with no vendor research pipeline behind it.</p></div>
+    <div class="card"><h3>API deep research</h3><p>The app's engine behind an asynchronous endpoint, billed per token. The harness doesn't call APIs. Save the <code>output_text</code> to a file and import it like an app report.</p></div>
+  </div>
+
+  <h2>Observed CLI timings</h2>
+  <p>Minutes per session from the one real run in the ledger, at high effort and <code>max_parallel = 3</code>. CLI research sessions take about as long as app deep research. The later phases add roughly 45 minutes, and the meta-review about 3 more, for about <b>1 hour of active time across 19 sessions</b>.</p>
+  <div class="table-scroll"><table>
+    <thead><tr><th>Phase</th><th>agy</th><th>claude</th><th>codex</th><th>Phase wall-clock</th></tr></thead>
+    <tbody>
+      <tr><td>research</td><td>8.3</td><td>7.7</td><td>17.2</td><td>~17 min</td></tr>
+      <tr><td>review (3 each)</td><td>5.3–7.5</td><td>4.7–6.8</td><td>10.8–17.8</td><td>~28 min</td></tr>
+      <tr><td>reassessment</td><td>5.5</td><td>7.4</td><td>10.3</td><td>~10 min active</td></tr>
+      <tr><td>synthesis</td><td>4.8</td><td>7.1</td><td>8.8</td><td>~9 min</td></tr>
+      <tr><td>meta-review (1 session)</td><td>2.9</td><td>—</td><td>—</td><td>~3 min</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>Worked example: app reports in a CLI run</h2>
+  <p>Three CLI agents plus three app reports gives 3 research + <b>18</b> review (3 × 6) + 3 + 3 + 1 meta-review = <b>28 harness sessions</b>, plus 3 app tasks you run by hand. With <code>--no-review</code> on the imports it stays at 19, and the imports are still reassessed, synthesized and named in the meta-review. <a href="#flow">Set imports to 3 in the flow to see it →</a></p>
+  <ol class="steps">
+    <li><h3>Intake, then copy the question</h3>
+      Paste <code>QUESTION.md</code> into each app verbatim. If an app proposes a plan or asks questions, answer from the scope; don't add new requirements.
+      <pre>bin/dr new "Which open-source vector databases are production-ready in 2026?" \
+  --scope "Audience: platform team. Self-hosted only."
+cat runs/&lt;run-id&gt;/QUESTION.md</pre></li>
+    <li><h3>Start the CLIs; they pause after review</h3>
+      Once reassessment starts, imports are refused, so <code>dr run</code> stops after research and blind review by default. That gives the app reports time to finish. <code>--phase research,review</code> is the explicit equivalent.
+      <pre>nohup bin/dr run &lt;run-id&gt; &gt; run.log 2&gt;&amp;1 &amp;
+bin/dr status &lt;run-id&gt; --blind      <span class="c"># "paused after 'review'" when ready</span></pre></li>
+    <li><h3>Run the apps and get the reports out</h3>
+      ChatGPT: download as Markdown or Word. Gemini: <i>Export to Docs</i>. Claude: copy or download the report. Downloads land in your Downloads folder, which <code>dr pull</code> searches, including the Windows one under WSL. Keep citations as URLs so reviewers can open them.</li>
+    <li><h3>Pull them in</h3>
+      <code>dr pull</code> ranks what it finds against the question and imports your picks with a <code>&lt;vendor&gt;-app-deep-research</code> label. The label goes into the ledger only. Agents see an anonymous <code>R-</code> report, and <code>dr reveal</code> shows it as <code>external</code>. It converts <code>.docx</code> and <code>.html</code> itself and skips anything already imported.
+      <pre>bin/dr pull &lt;run-id&gt; --gdrive
+bin/dr pull &lt;run-id&gt; --gdrive --pick 1,2,3
+<span class="c"># ChatGPT/Claude "Export data" zips are searched too:</span>
+bin/dr pull &lt;run-id&gt; --export ~/chatgpt-export.zip</pre></li>
+    <li><h3>Continue the run</h3>
+      This adds the review sessions for the imports, then runs reassessment and synthesis across all six reports. The meta-review then names every producer and compares each app report with the same vendor's CLI agent.
+      <pre>nohup bin/dr run &lt;run-id&gt; --continue &gt; run.log 2&gt;&amp;1 &amp;
+cat runs/&lt;run-id&gt;/05-meta-review/M-*/review.md</pre></li>
+  </ol>
+  <div class="callout info"><b>What you get:</b> each vendor's app product and its CLI agent are scored on the same seven review dimensions for the same question, without reviewers knowing which is which. Import cleanup strips chat citation tokens and <code>utm_source=</code> parameters, but app formatting can still hint at the source. Delete preambles like “Here's my research plan…” for stricter blinding.</div>
+  <h2>Budget before a batch</h2>
+  <ul>
+    <li><b>ChatGPT</b> deep research has its own monthly allowance, so it costs nothing against Codex. Use it.</li>
+    <li><b>Gemini</b> and <b>Claude</b> app research spend the same pools the <code>agy</code> and <code>claude</code> sessions are about to use. Run them after the harness run, or when there's headroom.</li>
+    <li>Reassessment reads every report, so each import makes those sessions' contexts larger.</li>
+  </ul>
 </section>
 
 <!-- ============================================================ commands -->
@@ -655,12 +850,20 @@ work_root = "~/.cache/dr-harness/work" <span class="c"># isolated agent workspac
 max_parallel = 3                       <span class="c"># concurrent sessions per phase</span>
 max_attempts = 2
 commit = true
+pause_after = "review"                 <span class="c"># dr run stops here for imports; "" = never pause</span>
+meta_review_agent = ""                 <span class="c"># who writes the phase-5 meta-review; "" = first agent</span>
 
 [timeouts]                             <span class="c"># seconds per session</span>
 research = 5400
 review = 2700
 reassessment = 3600
 synthesis = 3600
+meta-review = 2700
+
+[pull]                                 <span class="c"># dr pull: find vendor app deep-research reports</span>
+lookback_days = 3                      <span class="c"># also consider files from before intake</span>
+min_words = 300
+gdrive = false                         <span class="c"># Google Docs via Drive API ($DR_GDRIVE_TOKEN or gcloud)</span>
 
 [[agents]]
 name = "codex"                         <span class="c"># label recorded in the ledger only</span>
@@ -740,6 +943,7 @@ extra_args = ["-s", "workspace-write", ...]</pre>
     <div class="card"><h3>Redaction</h3>Phrases like "As Claude…", "generated by Gemini…" or "Codex CLI sandbox" are replaced with <code>[identity redacted]</code>. Tooling residue such as chat citation tokens (<code>citeturn0search3</code>, <code>【4†source】</code>) and <code>utm_source=</code> URL parameters is removed. Each redaction is logged in the ledger.</div>
     <div class="card"><h3>Fixed formats</h3>Every phase requires the same section headings, so models' styles are harder to tell apart.</div>
   </div>
+  <div class="callout info"><b>Deliberate reveal at the end.</b> The phase-5 meta-review sees every identity and names them in <code>05-meta-review/</code>. It runs only after synthesis, its output is not identity-redacted, and nothing reads it as input, so phases 1–4 stay blind.</div>
   <div class="callout">Known limits: writing style can still give a model away, and an agent with shell access could go looking around your filesystem. For stricter separation, set <code>ledger_dir</code> to a path outside the repo.</div>
   <h2>What the ledger records per session</h2>
   <div class="table-scroll"><table><tbody>
@@ -757,24 +961,29 @@ extra_args = ["-s", "workspace-write", ...]</pre>
   <h1>Files</h1>
   <p>Intake creates a dedicated <code>runs/&lt;run-id&gt;/</code> directory for each question. Imports and phase outputs accumulate there as work progresses. Open its <code>INDEX.md</code> to browse the available artifacts.</p>
   <pre>bin/dr                     entry point (python3 -m harness)
+bin/publish-pages          copy this page to the GitHub Pages repo and push (run by .githooks)
+.githooks/                 post-commit / post-merge: publish when index.html changes
 config.toml                agents, timeouts, parallelism
 index.html                 this page
 README.md · PLAN.md        usage · design and decisions
+VENDOR_DEEP_RESEARCH.md    vendor app vs CLI deep research, limits, import workflow
 prompts/
   _common.md               rules shared by all phases (workspace, anonymity, honesty)
-  research.md  review.md  reassessment.md  synthesis.md
+  research.md  review.md  reassessment.md  synthesis.md  meta-review.md
 harness/
   core.py                  phases, planning, staging, execution, harvest, git
   frameworks.py            CLI adapters (claude, codex, agy, mock)
   options.py               model / thinking-level discovery, config editing
   anonymize.py             random IDs, self-identification redaction, tooling-residue scrub
   ledger.py                SQLite provenance ledger
-  cli.py                   dr subcommands (new, import, run, status, reveal, …)
+  cli.py                   dr subcommands (new, import, pull, run, status, reveal, …)
+  pull.py                  find app deep-research reports: Downloads, data exports, Google Drive
 tests/
-  offline.sh               mock agents + imports, full pipeline, leak checks (no tokens)
+  offline.sh               mock agents, pause → import + pull → --continue, meta-review, leak checks (no tokens)
   smoke.sh                 real CLIs on cheap models, scratch dirs, leak scan
   mock_agent.py
-  test_robustness.py        failure, retry and phase-gating regressions
+  test_robustness.py        failure, retry, gating, pause/continue and meta-review regressions
+  test_pull.py              dr pull: folders, docx/html, ChatGPT/Claude exports, mocked Drive, dedupe
   test_smoke.py             smoke-script success and failure scenarios
 runs/&lt;run-id&gt;/
   QUESTION.md  run.json  INDEX.md
@@ -782,6 +991,7 @@ runs/&lt;run-id&gt;/
   02-review/V-xxxxxxxx/       review.md
   03-reassessment/A-xxxxxxxx/ overview.md  reassess_R-….md
   04-synthesis/S-xxxxxxxx/    synthesis.md
+  05-meta-review/M-xxxxxxxx/  review.md  scoreboard.json   (identities revealed)
 ledger/
   ledger.sqlite            runs · tasks · events
   logs/&lt;run-id&gt;/          raw CLI stdout/stderr, unredacted imports (not anonymized)</pre>
@@ -816,7 +1026,7 @@ $("#themeBtn").addEventListener("click", () => {
 });
 
 /* ------------------------------------------------------------ routing */
-const VIEWS = ["overview", "flow", "phases", "rubrics", "quickstart", "commands", "config", "anonymity", "files"];
+const VIEWS = ["overview", "flow", "phases", "rubrics", "quickstart", "vendors", "commands", "config", "anonymity", "files"];
 function route() {
   const v = VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : "overview";
   document.querySelectorAll("section.view").forEach(s => s.classList.toggle("active", s.id === "v-" + v));
@@ -857,12 +1067,13 @@ const CMDS = [
   ["dr config", "Pick a model and thinking level for each agent, interactively or with --set. Comments in config.toml are kept.", "--set NAME.model=ID · --set NAME.effort=LEVEL · --agent · -y · --commit"],
   ["dr new \"question\"", "Phase 0 (intake): record the question and scope, then commit", "--scope TEXT · --scope-file F · --file F · --import F"],
   ["dr import RUN FILE…", "Add research done offline or elsewhere as an anonymous R- report. It is reviewed, reassessed and synthesized, but runs no sessions itself. Refused once reassessment has started.", "--label NAME (ledger only) · --no-review · FILE = - for stdin"],
-  ["dr run RUN", "Run or resume phases in order, committing after each session", "--phase research,review · --agents a,b · --allow-partial · --retry-failed"],
-  ["dr status RUN", "Show task progress for each phase", "--blind (hide agent names)"],
+  ["dr pull RUN", "Find vendor app deep-research reports for the run's question in Downloads (incl. Windows Downloads under WSL), ChatGPT/Claude data-export zips and, with --gdrive, Google Docs. Lists them ranked by match; --pick imports through dr import", "--pick 1,KEY · --gdrive · --dir D · --export ZIP · --since DATE · --label · --no-review"],
+  ["dr run RUN", "Run or resume phases in order, committing after each session. Without --phase or --continue it pauses after review so you can import app reports", "--continue · --phase research,review · --agents a,b · --allow-partial · --retry-failed"],
+  ["dr status RUN", "Show task progress for each phase, and the continue command when the run is paused", "--blind (hide agent names)"],
   ["dr reveal RUN", "Show the mapping from artifact to framework, version, model and effort", "--json · --out FILE"],
   ["dr queue", "List questions waiting for their first agent session by ID, intake date and question, oldest first", ""],
   ["dr list", "List runs, with completed counts for each phase", ""],
-  ["tests/offline.sh", "Run the full pipeline with 3 mock agents and 2 imported reports: 23 artifacts, redaction, scrub and leak checks, no tokens", ""],
+  ["tests/offline.sh", "Run the full pipeline with 3 mock agents: pause after review, one dr import and one dr pull while paused, --continue through the meta-review (28 artifacts), with redaction, scrub and leak checks and no tokens", ""],
   ["tests/smoke.sh [phases]", "Run the real CLIs on cheap models in scratch folders, with no commits and a leak scan at the end", "SMOKE_MODEL_<NAME>=model[:effort]"],
 ];
 $("#cmdTable").innerHTML = CMDS.map(([c, d, f]) => `<tr><td><code>${esc(c)}</code></td><td>${esc(d)}</td><td>${f ? `<code>${esc(f)}</code>` : ""}</td></tr>`).join("");
@@ -885,10 +1096,13 @@ const PHASES = [
   { key: "synthesis", dir: "04-synthesis", title: "Synthesis", sub: "N sessions", sessions: n => n, prefix: "S",
     desc: "Each agent combines all the reassessments into one cohesive report: findings merged by theme with calibrated confidence, a unified bibliography, the disagreements it resolved, the questions left open, and the claims that were refuted.",
     reads: "all reassessments (primary), plus the original reports for sources", writes: "S-*/synthesis.md (10 fixed sections + JSON)" },
+  { key: "meta-review", dir: "05-meta-review", title: "Meta-review", sub: "1 session", sessions: () => 1, prefix: "M",
+    desc: "Blindness is over. One agent (meta_review_agent, default the first) reads every artifact with its producer named, plus a scoreboard the harness builds from the ledger and the JSON summaries (peer vs self review scores, claims checked and contradicted, rulings, failures, minutes). It judges each producer as researcher, reviewer, reassessor and synthesizer, compares imported app reports with the CLI agents, and lists process weaknesses and recommendations. The harness appends the identity map and scoreboard verbatim.",
+    reads: "every artifact, annotated with its producer; inputs/IDENTITIES.md; inputs/scoreboard.json", writes: "M-*/review.md (10 sections + JSON, then harness Appendix A identity map and B scoreboard), scoreboard.json" },
 ];
 const IMPORT = {
-  desc: "Research done offline or in another tool, added with dr import. No session runs for it. The harness redacts and scrubs it, gives it a random R- ID, and from then on it is an ordinary report: reviewed by every agent (unless --no-review), ruled on in every reassessment, and used in synthesis. It never acts as a reviewer, reassessor or synthesizer.",
-  reads: "your file (or stdin)", writes: "R-*/report.md (redacted copy; original kept in ledger/logs/)" };
+  desc: "Research done offline or in another tool (typically a vendor app's deep research), added with dr import or found and picked with dr pull. No session runs for it. The harness redacts and scrubs it, gives it a random R- ID, and from then on it is an ordinary report: reviewed by every agent (unless --no-review), ruled on in every reassessment, and used in synthesis. It never acts as a reviewer, reassessor or synthesizer.",
+  reads: "your file, stdin, or a dr pull pick (Downloads, data-export zip, Google Doc)", writes: "R-*/report.md (redacted copy; original kept in ledger/logs/)" };
 const COLORS = ["--a1", "--a2", "--a3", "--a4", "--a5", "--a6"];
 let agents = [
   { name: "agy", on: true }, { name: "codex", on: true }, { name: "claude", on: true },
@@ -930,7 +1144,11 @@ function buildGraph() {
   const S = A.map(a => ({ key: "S:" + a.name, phase: 4, agent: a.name, label: idFor("S:" + a.name, "S") }));
   nodes.push(...S);
   S.forEach(s => { As.forEach(x => edges.push({ from: x, to: s })); });
-  return { nodes, edges, cols: [[q], R.concat(I), V, As, S] };
+  const M = { key: "M", phase: 5, agent: A[0].name, meta: true, label: idFor("M", "M") };
+  nodes.push(M);
+  S.forEach(s => edges.push({ from: s, to: M }));
+  R.concat(I).forEach(r => edges.push({ from: r, to: M, faint: true }));
+  return { nodes, edges, cols: [[q], R.concat(I), V, As, S, [M]] };
 }
 
 function render() {
@@ -939,7 +1157,7 @@ function render() {
   const reveal = $("#reveal").checked;
   const { nodes, edges, cols } = buildGraph();
   const n = active().length;
-  const W = 1060, colW = W / 5, nodeW = 132, nodeH = 26, gap = 9, top = 64;
+  const W = 1060, colW = W / PHASES.length, nodeW = 132, nodeH = 26, gap = 9, top = 64;
   const maxRows = Math.max(1, ...cols.map(c => c.length));
   const H = top + maxRows * (nodeH + gap) + 30;
   svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
@@ -953,6 +1171,11 @@ function render() {
     s.textContent = (p.dir !== "—" ? p.dir + " · " : "") + (i === 0 ? p.sub
       : i === 1 && imports ? `${ns} + ${imports} imported` : `${ns} session${ns === 1 ? "" : "s"}`);
   });
+  // default pause between blind review and reassessment (dr run … --continue)
+  const px = 3 * colW;
+  svgEl("line", { x1: px, y1: 12, x2: px, y2: H - 12, stroke: "var(--warn)", "stroke-width": 2, "stroke-dasharray": "5 4" }, svg);
+  const pt = svgEl("text", { class: "col-sub", x: px, y: H - 4, "text-anchor": "middle", fill: "var(--warn)" }, svg);
+  pt.textContent = "‖ pause · dr import · --continue";
   // positions
   cols.forEach((col, i) => {
     const block = col.length * (nodeH + gap) - gap;
@@ -973,13 +1196,14 @@ function render() {
     const g = svgEl("g", { class: "node" + (nd.phase > stage ? " pending" : "") + (selected === nd.key ? " sel" : ""), tabindex: 0, role: "button",
       "aria-label": nodeTitle(nd, reveal) }, gN);
     const col = nd.imported ? (reveal ? "var(--warn)" : "var(--anon)")
+      : nd.meta ? (reveal ? colorOf(nd.agent) : "var(--accent)")
       : nd.agent && reveal ? colorOf(nd.agent) : (nd.agent ? "var(--anon)" : "var(--accent)");
     svgEl("rect", { x: nd.x, y: nd.y, width: nodeW, height: nodeH, rx: 6, fill: "var(--surface)", stroke: col,
       ...(nd.imported ? { "stroke-dasharray": "4 3" } : {}) }, g);
     svgEl("rect", { x: nd.x, y: nd.y, width: 5, height: nodeH, rx: 2, fill: col, stroke: "none" }, g);
     const t = svgEl("text", { x: nd.x + 13, y: nd.y + nodeH / 2 + 4, fill: "var(--text)" }, g);
     const who = nd.agent || (nd.imported ? "import" : "");
-    t.textContent = who ? (reveal ? `${nd.label.slice(0, 6)}… ${who}` : nd.label) : nd.label;
+    t.textContent = nd.meta && !reveal ? `${nd.label.slice(0, 6)}… sees all` : who ? (reveal ? `${nd.label.slice(0, 6)}… ${who}` : nd.label) : nd.label;
     nd.el = g;
     g.addEventListener("mouseenter", () => highlight(nd, nodes, edges));
     g.addEventListener("mouseleave", () => highlight(selected ? nodes.find(x => x.key === selected) : null, nodes, edges));
@@ -1062,8 +1286,8 @@ function renderPhaseCards(n) {
 
 function kReviewed() { return $("#impReview").checked ? imports : 0; }
 function updateCounter(n) {
-  const rv = n * (n + kReviewed()), total = n + rv + n + n;
-  $("#counter").innerHTML = `Sessions: <b>${n}</b> + <b>${rv}</b> + <b>${n}</b> + <b>${n}</b> = <b>${total}</b>`
+  const rv = n * (n + kReviewed()), total = n + rv + n + n + 1;
+  $("#counter").innerHTML = `Sessions: <b>${n}</b> + <b>${rv}</b> + <b>${n}</b> + <b>${n}</b> + <b>1</b> = <b>${total}</b>`
     + (imports ? ` · ${imports} imported report${imports === 1 ? "" : "s"} (0 sessions)` : "");
 }
 
