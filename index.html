@@ -18,6 +18,14 @@
         overflow: hidden;
       }
 
+      #field-grid {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+      }
+
       .ball {
         position: absolute;
         width: min(48px, 30vmin);
@@ -98,7 +106,9 @@
     </style>
   </head>
   <body>
-    <main id="playfield" aria-label="Bouncing balls"></main>
+    <main id="playfield" aria-label="Bouncing balls with a distorted force-field grid">
+      <canvas id="field-grid" aria-hidden="true"></canvas>
+    </main>
     <nav aria-label="Projects">
       <ul>
         <li><a href="./deep_research/">deep|research</a></li>
@@ -124,6 +134,10 @@
     </section>
     <script>
       const playfield = document.querySelector('#playfield');
+      const canvas = document.querySelector('#field-grid');
+      const brush = canvas.getContext('2d');
+      let grid = [];
+      let spacing;
       const readout = document.querySelector('#physics-readout');
       const mouseRepulsionStatus = document.querySelector('#mouse-repulsion');
       const energyRows = Array.from(document.querySelectorAll('.energy-row'), (row) => ({
@@ -153,6 +167,70 @@
         diameter = balls[0].element.getBoundingClientRect().width;
         maxX = Math.max(0, playfield.clientWidth - diameter);
         maxY = Math.max(0, playfield.clientHeight - diameter);
+      }
+
+      function resizeGrid() {
+        if (!brush) return;
+        const width = playfield.clientWidth;
+        const height = playfield.clientHeight;
+        const scale = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = Math.round(width * scale);
+        canvas.height = Math.round(height * scale);
+        brush.setTransform(scale, 0, 0, scale, 0, 0);
+        brush.strokeStyle = 'rgba(135, 190, 218, 0.38)';
+        spacing = Math.max(28, Math.ceil(Math.sqrt(width * height / 1800)));
+        // Extend past the viewport so displaced lines still reach the edges.
+        grid = Array.from({ length: Math.ceil(height / spacing) + 3 }, (_, row) =>
+          Array.from({ length: Math.ceil(width / spacing) + 3 }, (_, col) => ({
+            x: (col - 1) * spacing, y: (row - 1) * spacing, px: 0, py: 0,
+          })));
+      }
+
+      // Multiply the displacement vector by this factor to get acceleration.
+      function fieldFactor(dx, dy, strength, cutoff) {
+        const squared = dx * dx + dy * dy;
+        return squared === 0 ? 0 : strength / (Math.sqrt(squared) * Math.max(squared, cutoff * cutoff));
+      }
+
+      function drawField() {
+        if (!brush) return;
+        const radius = diameter / 2;
+        const limit = spacing * 0.9;
+        for (const row of grid) {
+          for (const point of row) {
+            let ax = 0;
+            let ay = 0;
+            for (const ball of balls) {
+              const dx = ball.x + radius - point.x;
+              const dy = ball.y + radius - point.y;
+              const factor = fieldFactor(dx, dy, attraction, diameter);
+              ax += dx * factor;
+              ay += dy * factor;
+            }
+            if (mouseRepulsionEnabled && pointer) {
+              const dx = point.x - pointer.x;
+              const dy = point.y - pointer.y;
+              const factor = fieldFactor(dx, dy, repulsion, radius);
+              ax += dx * factor;
+              ay += dy * factor;
+            }
+            // Compress large magnitudes while preserving the net force direction.
+            const gain = limit / (32 / forceScale + Math.hypot(ax, ay));
+            point.px = point.x + ax * gain;
+            point.py = point.y + ay * gain;
+          }
+        }
+        brush.clearRect(0, 0, playfield.clientWidth, playfield.clientHeight);
+        brush.beginPath();
+        for (const row of grid) {
+          brush.moveTo(row[0].px, row[0].py);
+          for (const point of row) brush.lineTo(point.px, point.py);
+        }
+        for (let col = 0; col < grid[0].length; col++) {
+          brush.moveTo(grid[0][col].px, grid[0][col].py);
+          for (const row of grid) brush.lineTo(row[col].px, row[col].py);
+        }
+        brush.stroke();
       }
 
       function addBall() {
@@ -209,13 +287,9 @@
           if (mouseRepulsionEnabled && pointer) {
             const dx = ball.x + diameter / 2 - pointer.x;
             const dy = ball.y + diameter / 2 - pointer.y;
-            const distance = Math.hypot(dx, dy);
-            if (distance > 0) {
-              // Limit the acceleration within the ball's radius.
-              const repulsionStep = forceScale * repulsion * seconds / Math.max(distance, diameter / 2) ** 2;
-              ball.vx += repulsionStep * dx / distance;
-              ball.vy += repulsionStep * dy / distance;
-            }
+            const factor = fieldFactor(dx, dy, repulsion, diameter / 2) * forceScale * seconds;
+            ball.vx += dx * factor;
+            ball.vy += dy * factor;
           }
           ball.x += ball.vx * seconds;
           ball.y += ball.vy * seconds;
@@ -232,16 +306,11 @@
       function attract(first, second, seconds) {
         const dx = second.x - first.x;
         const dy = second.y - first.y;
-        const distance = Math.hypot(dx, dy);
-        if (distance > 0) {
-          const attractionStep = forceScale * attraction * seconds / Math.max(distance, diameter) ** 2;
-          const dvx = attractionStep * dx / distance;
-          const dvy = attractionStep * dy / distance;
-          first.vx += dvx;
-          first.vy += dvy;
-          second.vx -= dvx;
-          second.vy -= dvy;
-        }
+        const factor = fieldFactor(dx, dy, attraction, diameter) * forceScale * seconds;
+        first.vx += dx * factor;
+        first.vy += dy * factor;
+        second.vx -= dx * factor;
+        second.vy -= dy * factor;
       }
 
       function collide(first, second) {
@@ -343,14 +412,19 @@
           }
           render();
         }
+        drawField();
         updateEnergyChart();
         if (!readout.hidden) updateReadout();
         requestAnimationFrame(animate);
       }
 
       for (let i = 0; i < initialBallCount; i++) addBall();
+      resizeGrid();
 
-      window.addEventListener('resize', measure);
+      window.addEventListener('resize', () => {
+        measure();
+        resizeGrid();
+      });
       window.addEventListener('wheel', (event) => {
         if (event.ctrlKey || event.deltaY === 0) return;
         forceScale = Math.max(0.01, Math.min(100, forceScale * 1.1 ** -Math.sign(event.deltaY)));
